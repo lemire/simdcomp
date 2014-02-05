@@ -13772,9 +13772,7 @@ static void __SIMD_fastunpack31_32(const  __m128i*   in, uint32_t *    _out) {
 }
 
 
-
-
-static void __SIMD_fastunpack32_32(const  __m128i*   in, uint32_t *    _out) {
+void __SIMD_fastunpack32_32(const  __m128i*   in, uint32_t *    _out) {
     __m128i*   out = (__m128i*)(_out);
   for(uint32_t outer=0; outer< 32 ;++outer) {
     _mm_storeu_si128(out++, _mm_loadu_si128(in++));
