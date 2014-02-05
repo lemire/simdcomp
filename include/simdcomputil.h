@@ -14,12 +14,13 @@
 // returns the integer logarithm of v (bit width)
 uint32_t bits(const uint32_t v);
 
-
+// max integer logarithm over a range
 uint32_t maxbits(const uint32_t * begin, const uint32_t * end);
 
 enum{ SIMDBlockSize = 128};
 
-// maxbit over 128 integers (SIMDBlockSize) with provided initial value
+// like maxbit over 128 integers (SIMDBlockSize) with provided initial value
+// and using differential coding
 uint32_t simdmaxbitsd1(uint32_t initvalue, const uint32_t * in);
 
 
