@@ -5,7 +5,7 @@ A simple C library for compressing lists of integers
 
 
 Usage
-=======
+-------
 
 Compression works over blocks of 128 integers.
 
@@ -29,7 +29,8 @@ We used differential coding: we store the difference between successive integers
 
 
 References
-===========
+------------
+
 
 Daniel Lemire and Leonid Boytsov, Decoding billions of integers per second through vectorization, Software: Practice & Experience, 2013. 
 http://dx.doi.org/10.1002/spe.2203
