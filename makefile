@@ -5,12 +5,15 @@
 
 CFLAGS = -fPIC -std=c99 -O3 -Wall -Wextra -Wno-unused-parameter -pedantic
 LDFLAGS = -shared
-all:  unit libsimdcomp.so
+LIBNAME=libsimdcomp.so.0.0.2
+all:  unit $(LIBNAME)
 test: 
 	./unit
 install: $(OBJECTS)
-	cp libsimdcomp.so /usr/local/lib
-	cp $(HEADERS) /usr/local/include 
+	cp $(LIBNAME) /usr/local/lib
+	ln -s /usr/local/lib/$(LIBNAME) /usr/local/lib/libsimdcomp.so
+	ldconfig
+	cp $(HEADERS) /usr/local/include
 
 
 
@@ -18,12 +21,15 @@ HEADERS=./include/simdbitpacking.h ./include/simdcomputil.h ./include/simdintegr
 
 uninstall:
 	for h in $(HEADERS) ; do rm  /usr/local/$$h; done
-	rm  /usr/local/lib/libsimdcomp.so
+	rm  /usr/local/lib/$(LIBNAME)
+	rm /usr/local/lib/libsimdcomp.so
+	ldconfig
+
 
 OBJECTS= simdbitpacking.o simdintegratedbitpacking.o simdcomputil.o
 
-libsimdcomp.so: $(OBJECTS)
-	$(CC) $(CFLAGS) -o libsimdcomp.so $(OBJECTS)  $(LDFLAGS) 
+$(LIBNAME): $(OBJECTS)
+	$(CC) $(CFLAGS) -o $(LIBNAME) $(OBJECTS)  $(LDFLAGS) 
 
 
 
@@ -38,6 +44,8 @@ simdintegratedbitpacking.o: ./src/simdintegratedbitpacking.c  $(HEADERS)
 
 unit: ./src/unit.c    $(HEADERS) $(OBJECTS)
 	$(CC) $(CFLAGS) -o unit ./src/unit.c -Iinclude  $(OBJECTS)
+dynunit: ./src/unit.c    $(HEADERS) $(LIBNAME)
+	$(CC) $(CFLAGS) -o dynunit ./src/unit.c -Iinclude  -lsimdcomp 
 
 clean: 
-	rm -f unit *.o libsimdcomp.so
+	rm -f unit *.o $(LIBNAME)
