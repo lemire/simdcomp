@@ -1,7 +1,7 @@
 simdcomp
 ========
 
-A simple C library for fast compressed lists of integers
+A simple C library for compressing lists of integers
 
 
 Usage
