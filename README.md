@@ -26,7 +26,15 @@ We used differential coding: we store the difference between successive integers
         simdpackwithoutmaskd1(offset, datain, buffer, b1);//compressed
         simdunpackd1(offset, buffer, backbuffer, b1);//uncompressed
 
+Setup
+=======
 
+make
+make test
+
+and if you are daring:
+
+make install 
 
 References
 ===========

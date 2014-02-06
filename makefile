@@ -6,7 +6,8 @@
 CFLAGS = -fPIC -std=c99 -O3 -Wall -Wextra -Wno-unused-parameter -pedantic
 LDFLAGS = -shared
 all:  unit libsimdcomp.so
-
+test: 
+	./unit
 install: $(OBJECTS)
 	cp libsimdcomp.so /usr/local/lib
 	cp $(HEADERS) /usr/local/include 
@@ -39,4 +40,4 @@ unit: ./src/unit.c    $(HEADERS) $(OBJECTS)
 	$(CC) $(CFLAGS) -o unit ./src/unit.c -Iinclude  $(OBJECTS)
 
 clean: 
-	rm -f unit *.o
+	rm -f unit *.o libsimdcomp.so
