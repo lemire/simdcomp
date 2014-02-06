@@ -3,6 +3,11 @@ simdcomp
 
 A simple C library for compressing lists of integers
 
+Requirements
+=============
+
+- C99 compliant compiler (GCC is assumed)
+- A Linux-like distribution is assumed by the makefile
 
 Usage
 =======
