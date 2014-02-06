@@ -6,6 +6,7 @@ A simple C library for compressing lists of integers
 Requirements
 =============
 
+- Your processor should support SSE2 (Pentium4 or better)
 - C99 compliant compiler (GCC is assumed)
 - A Linux-like distribution is assumed by the makefile
 
