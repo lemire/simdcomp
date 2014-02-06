@@ -2,9 +2,7 @@
  * This code is released under a BSD License.
  */
 #include <stdio.h>
-#include "simdbitpacking.h"
-#include "simdcomputil.h"
-#include "simdintegratedbitpacking.h"
+#include "simdcomp.h"
 
 int main() {
     int N = 5000 * SIMDBlockSize;

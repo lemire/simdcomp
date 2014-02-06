@@ -14,7 +14,7 @@ install: $(OBJECTS)
 
 
 
-HEADERS=./include/simdbitpacking.h ./include/simdcomputil.h ./include/simdintegratedbitpacking.h
+HEADERS=./include/simdbitpacking.h ./include/simdcomputil.h ./include/simdintegratedbitpacking.h ./include/simdcomp.h 
 
 uninstall:
 	for h in $(HEADERS) ; do rm  /usr/local/$$h; done
