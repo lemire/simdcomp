@@ -1,14 +1,30 @@
+# minimalist makefile
 .SUFFIXES:
 #
 .SUFFIXES: .cpp .o .c .h
 
-CFLAGS = -std=c99 -O3 -Wall -Wextra -Wno-unused-parameter -pedantic
+CFLAGS = -fPIC -std=c99 -O3 -Wall -Wextra -Wno-unused-parameter -pedantic
+LDFLAGS = -shared
+all:  unit libsimdcomp.so
 
-all:  unit
+install: $(OBJECTS)
+	cp libsimdcomp.so /usr/local/lib
+	cp $(HEADERS) /usr/local/include 
+
+
 
 HEADERS=./include/simdbitpacking.h ./include/simdcomputil.h ./include/simdintegratedbitpacking.h
 
+uninstall:
+	for h in $(HEADERS) ; do rm  /usr/local/$$h; done
+	rm  /usr/local/lib/libsimdcomp.so
+
 OBJECTS= simdbitpacking.o simdintegratedbitpacking.o simdcomputil.o
+
+libsimdcomp.so: $(OBJECTS)
+	$(CC) $(CFLAGS) -o libsimdcomp.so $(OBJECTS)  $(LDFLAGS) 
+
+
 
 simdcomputil.o: ./src/simdcomputil.c $(HEADERS)
 	$(CC) $(CFLAGS) -c ./src/simdcomputil.c -Iinclude  
