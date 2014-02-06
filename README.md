@@ -36,6 +36,11 @@ and if you are daring:
 
 make install 
 
+Go
+===
+
+If you are a go user, there is a "go" folder where you will find a simple demo.
+
 References
 ===========
 
