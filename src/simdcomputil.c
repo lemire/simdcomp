@@ -22,9 +22,9 @@ uint32_t bits(const uint32_t v) {
 }
 
 __attribute__ ((pure))
-uint32_t maxbits(const uint32_t * begin, const uint32_t * end) {
+uint32_t maxbits(const uint32_t * begin) {
     uint32_t accumulator = 0;
-    for (const uint32_t * k = begin; k != end; ++k) {
+    for (const uint32_t * k = begin; k != begin + SIMDBlockSize; ++k) {
         accumulator |= *k;
     }
     return bits(accumulator);

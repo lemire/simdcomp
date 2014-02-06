@@ -24636,72 +24636,72 @@ __m128i iunpack32(__m128i  initOffset, const  __m128i*   in, uint32_t *    _out)
 
  void simdunpackd1(uint32_t initvalue, const __m128i *   in, uint32_t * out, const uint32_t bit) {
      __m128i  initOffset = _mm_set1_epi32 (initvalue);
-    switch(bit) {
-        case 0:  iunpack0(initOffset,in,out);
+     switch(bit) {
+        case 0:  iunpack0(initOffset,in,out); break;
 
-        case 1:  iunpack1(initOffset,in,out);
+        case 1:  iunpack1(initOffset,in,out); break;
 
-        case 2:  iunpack2(initOffset,in,out);
+        case 2:  iunpack2(initOffset,in,out); break;
 
-        case 3:  iunpack3(initOffset,in,out);
+        case 3:  iunpack3(initOffset,in,out); break;
 
-        case 4:  iunpack4(initOffset,in,out);
+        case 4:  iunpack4(initOffset,in,out); break;
 
-        case 5:  iunpack5(initOffset,in,out);
+        case 5:  iunpack5(initOffset,in,out); break;
 
-        case 6:  iunpack6(initOffset,in,out);
+        case 6:  iunpack6(initOffset,in,out); break;
 
-        case 7:  iunpack7(initOffset,in,out);
+        case 7:  iunpack7(initOffset,in,out); break;
 
-        case 8:  iunpack8(initOffset,in,out);
+        case 8:  iunpack8(initOffset,in,out); break;
 
-        case 9:  iunpack9(initOffset,in,out);
+        case 9:  iunpack9(initOffset,in,out); break;
 
-        case 10:  iunpack10(initOffset,in,out);
+        case 10:  iunpack10(initOffset,in,out); break;
 
-        case 11:  iunpack11(initOffset,in,out);
+        case 11:  iunpack11(initOffset,in,out); break;
 
-        case 12:  iunpack12(initOffset,in,out);
+        case 12:  iunpack12(initOffset,in,out); break;
 
-        case 13:  iunpack13(initOffset,in,out);
+        case 13:  iunpack13(initOffset,in,out); break;
 
-        case 14:  iunpack14(initOffset,in,out);
+        case 14:  iunpack14(initOffset,in,out); break;
 
-        case 15:  iunpack15(initOffset,in,out);
+        case 15:  iunpack15(initOffset,in,out); break;
 
-        case 16:  iunpack16(initOffset,in,out);
+        case 16:  iunpack16(initOffset,in,out); break;
 
-        case 17:  iunpack17(initOffset,in,out);
+        case 17:  iunpack17(initOffset,in,out); break;
 
-        case 18:  iunpack18(initOffset,in,out);
+        case 18:  iunpack18(initOffset,in,out); break;
 
-        case 19:  iunpack19(initOffset,in,out);
+        case 19:  iunpack19(initOffset,in,out); break;
 
-        case 20:  iunpack20(initOffset,in,out);
+        case 20:  iunpack20(initOffset,in,out); break;
 
-        case 21:  iunpack21(initOffset,in,out);
+        case 21:  iunpack21(initOffset,in,out); break;
 
-        case 22:  iunpack22(initOffset,in,out);
+        case 22:  iunpack22(initOffset,in,out); break;
 
-        case 23:  iunpack23(initOffset,in,out);
+        case 23:  iunpack23(initOffset,in,out); break;
 
-        case 24:  iunpack24(initOffset,in,out);
+        case 24:  iunpack24(initOffset,in,out); break;
 
-        case 25:  iunpack25(initOffset,in,out);
+        case 25:  iunpack25(initOffset,in,out); break;
 
-        case 26:  iunpack26(initOffset,in,out);
+        case 26:  iunpack26(initOffset,in,out); break;
 
-        case 27:  iunpack27(initOffset,in,out);
+        case 27:  iunpack27(initOffset,in,out); break;
 
-        case 28:  iunpack28(initOffset,in,out);
+        case 28:  iunpack28(initOffset,in,out); break;
 
-        case 29:  iunpack29(initOffset,in,out);
+        case 29:  iunpack29(initOffset,in,out); break;
 
-        case 30:  iunpack30(initOffset,in,out);
+        case 30:  iunpack30(initOffset,in,out); break;
 
-        case 31:  iunpack31(initOffset,in,out);
+        case 31:  iunpack31(initOffset,in,out); break;
 
-        case 32:  iunpack32(initOffset,in,out);
+        case 32:  iunpack32(initOffset,in,out); break;
 
         default: break;
     }
@@ -24714,71 +24714,71 @@ __m128i iunpack32(__m128i  initOffset, const  __m128i*   in, uint32_t *    _out)
 void simdpackwithoutmaskd1(uint32_t initvalue,  const uint32_t *   in, __m128i *    out, const uint32_t bit) {
     __m128i  initOffset = _mm_set1_epi32 (initvalue);
     switch(bit) {
-        case 0: return;
+        case 0: break;
 
-        case 1: ipackwithoutmask1(initOffset,in,out); return;
+        case 1: ipackwithoutmask1(initOffset,in,out); break;
 
-        case 2: ipackwithoutmask2(initOffset,in,out); return;
+        case 2: ipackwithoutmask2(initOffset,in,out); break;
 
-        case 3: ipackwithoutmask3(initOffset,in,out); return;
+        case 3: ipackwithoutmask3(initOffset,in,out); break;
 
-        case 4: ipackwithoutmask4(initOffset,in,out); return;
+        case 4: ipackwithoutmask4(initOffset,in,out); break;
 
-        case 5: ipackwithoutmask5(initOffset,in,out); return;
+        case 5: ipackwithoutmask5(initOffset,in,out); break;
 
-        case 6: ipackwithoutmask6(initOffset,in,out); return;
+        case 6: ipackwithoutmask6(initOffset,in,out); break;
 
-        case 7: ipackwithoutmask7(initOffset,in,out); return;
+        case 7: ipackwithoutmask7(initOffset,in,out); break;
 
-        case 8: ipackwithoutmask8(initOffset,in,out); return;
+        case 8: ipackwithoutmask8(initOffset,in,out); break;
 
-        case 9: ipackwithoutmask9(initOffset,in,out); return;
+        case 9: ipackwithoutmask9(initOffset,in,out); break;
 
-        case 10: ipackwithoutmask10(initOffset,in,out); return;
+        case 10: ipackwithoutmask10(initOffset,in,out); break;
 
-        case 11: ipackwithoutmask11(initOffset,in,out); return;
+        case 11: ipackwithoutmask11(initOffset,in,out); break;
 
-        case 12: ipackwithoutmask12(initOffset,in,out); return;
+        case 12: ipackwithoutmask12(initOffset,in,out); break;
 
-        case 13: ipackwithoutmask13(initOffset,in,out); return;
+        case 13: ipackwithoutmask13(initOffset,in,out); break;
 
-        case 14: ipackwithoutmask14(initOffset,in,out); return;
+        case 14: ipackwithoutmask14(initOffset,in,out); break;
 
-        case 15: ipackwithoutmask15(initOffset,in,out); return;
+        case 15: ipackwithoutmask15(initOffset,in,out); break;
 
-        case 16: ipackwithoutmask16(initOffset,in,out); return;
+        case 16: ipackwithoutmask16(initOffset,in,out); break;
 
-        case 17: ipackwithoutmask17(initOffset,in,out); return;
+        case 17: ipackwithoutmask17(initOffset,in,out); break;
 
-        case 18: ipackwithoutmask18(initOffset,in,out); return;
+        case 18: ipackwithoutmask18(initOffset,in,out); break;
 
-        case 19: ipackwithoutmask19(initOffset,in,out); return;
+        case 19: ipackwithoutmask19(initOffset,in,out); break;
 
-        case 20: ipackwithoutmask20(initOffset,in,out); return;
+        case 20: ipackwithoutmask20(initOffset,in,out); break;
 
-        case 21: ipackwithoutmask21(initOffset,in,out); return;
+        case 21: ipackwithoutmask21(initOffset,in,out); break;
 
-        case 22: ipackwithoutmask22(initOffset,in,out); return;
+        case 22: ipackwithoutmask22(initOffset,in,out); break;
 
-        case 23: ipackwithoutmask23(initOffset,in,out); return;
+        case 23: ipackwithoutmask23(initOffset,in,out); break;
 
-        case 24: ipackwithoutmask24(initOffset,in,out); return;
+        case 24: ipackwithoutmask24(initOffset,in,out); break;
 
-        case 25: ipackwithoutmask25(initOffset,in,out); return;
+        case 25: ipackwithoutmask25(initOffset,in,out); break;
 
-        case 26: ipackwithoutmask26(initOffset,in,out); return;
+        case 26: ipackwithoutmask26(initOffset,in,out); break;
 
-        case 27: ipackwithoutmask27(initOffset,in,out); return;
+        case 27: ipackwithoutmask27(initOffset,in,out); break;
 
-        case 28: ipackwithoutmask28(initOffset,in,out); return;
+        case 28: ipackwithoutmask28(initOffset,in,out); break;
 
-        case 29: ipackwithoutmask29(initOffset,in,out); return;
+        case 29: ipackwithoutmask29(initOffset,in,out); break;
 
-        case 30: ipackwithoutmask30(initOffset,in,out); return;
+        case 30: ipackwithoutmask30(initOffset,in,out); break;
 
-        case 31: ipackwithoutmask31(initOffset,in,out); return;
+        case 31: ipackwithoutmask31(initOffset,in,out); break;
 
-        case 32: ipackwithoutmask32(initOffset,in,out); return;
+        case 32: ipackwithoutmask32(initOffset,in,out); break;
 
         default: break;
     }
@@ -24790,71 +24790,71 @@ void simdpackwithoutmaskd1(uint32_t initvalue,  const uint32_t *   in, __m128i *
 void simdpackd1(uint32_t initvalue, const uint32_t *   in, __m128i * out, const uint32_t bit) {
     __m128i  initOffset = _mm_set1_epi32 (initvalue);
     switch(bit) {
-        case 0: return;;
+        case 0: break;;
 
-        case 1: ipack1(initOffset, in,out); return;
+        case 1: ipack1(initOffset, in,out); break;
 
-        case 2: ipack2(initOffset, in,out); return;
+        case 2: ipack2(initOffset, in,out); break;
 
-        case 3: ipack3(initOffset, in,out); return;
+        case 3: ipack3(initOffset, in,out); break;
 
-        case 4: ipack4(initOffset, in,out); return;
+        case 4: ipack4(initOffset, in,out); break;
 
-        case 5: ipack5(initOffset, in,out); return;
+        case 5: ipack5(initOffset, in,out); break;
 
-        case 6: ipack6(initOffset, in,out); return;
+        case 6: ipack6(initOffset, in,out); break;
 
-        case 7: ipack7(initOffset, in,out); return;
+        case 7: ipack7(initOffset, in,out); break;
 
-        case 8: ipack8(initOffset, in,out); return;
+        case 8: ipack8(initOffset, in,out); break;
 
-        case 9: ipack9(initOffset, in,out); return;
+        case 9: ipack9(initOffset, in,out); break;
 
-        case 10: ipack10(initOffset, in,out); return;
+        case 10: ipack10(initOffset, in,out); break;
 
-        case 11: ipack11(initOffset, in,out); return;
+        case 11: ipack11(initOffset, in,out); break;
 
-        case 12: ipack12(initOffset, in,out); return;
+        case 12: ipack12(initOffset, in,out); break;
 
-        case 13: ipack13(initOffset, in,out); return;
+        case 13: ipack13(initOffset, in,out); break;
 
-        case 14: ipack14(initOffset, in,out); return;
+        case 14: ipack14(initOffset, in,out); break;
 
-        case 15: ipack15(initOffset, in,out); return;
+        case 15: ipack15(initOffset, in,out); break;
 
-        case 16: ipack16(initOffset, in,out); return;
+        case 16: ipack16(initOffset, in,out); break;
 
-        case 17: ipack17(initOffset, in,out); return;
+        case 17: ipack17(initOffset, in,out); break;
 
-        case 18: ipack18(initOffset, in,out); return;
+        case 18: ipack18(initOffset, in,out); break;
 
-        case 19: ipack19(initOffset, in,out); return;
+        case 19: ipack19(initOffset, in,out); break;
 
-        case 20: ipack20(initOffset, in,out); return;
+        case 20: ipack20(initOffset, in,out); break;
 
-        case 21: ipack21(initOffset, in,out); return;
+        case 21: ipack21(initOffset, in,out); break;
 
-        case 22: ipack22(initOffset, in,out); return;
+        case 22: ipack22(initOffset, in,out); break;
 
-        case 23: ipack23(initOffset, in,out); return;
+        case 23: ipack23(initOffset, in,out); break;
 
-        case 24: ipack24(initOffset, in,out); return;
+        case 24: ipack24(initOffset, in,out); break;
 
-        case 25: ipack25(initOffset, in,out); return;
+        case 25: ipack25(initOffset, in,out); break;
 
-        case 26: ipack26(initOffset, in,out); return;
+        case 26: ipack26(initOffset, in,out); break;
 
-        case 27: ipack27(initOffset, in,out); return;
+        case 27: ipack27(initOffset, in,out); break;
 
-        case 28: ipack28(initOffset, in,out); return;
+        case 28: ipack28(initOffset, in,out); break;
 
-        case 29: ipack29(initOffset, in,out); return;
+        case 29: ipack29(initOffset, in,out); break;
 
-        case 30: ipack30(initOffset, in,out); return;
+        case 30: ipack30(initOffset, in,out); break;
 
-        case 31: ipack31(initOffset, in,out); return;
+        case 31: ipack31(initOffset, in,out); break;
 
-        case 32: ipack32(initOffset, in,out); return;
+        case 32: ipack32(initOffset, in,out); break;
 
         default: break;
     }

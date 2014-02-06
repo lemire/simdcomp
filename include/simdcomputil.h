@@ -15,7 +15,7 @@
 uint32_t bits(const uint32_t v);
 
 // max integer logarithm over a range
-uint32_t maxbits(const uint32_t * begin, const uint32_t * end);
+uint32_t maxbits(const uint32_t * begin);
 
 enum{ SIMDBlockSize = 128};
 
