@@ -4,7 +4,7 @@ simdcomp
 A simple C library for compressing lists of integers
 
 Requirements
-=============
+-------------
 
 - Your processor should support SSE2 (Pentium4 or better)
 - C99 compliant compiler (GCC is assumed)
@@ -33,7 +33,8 @@ We used differential coding: we store the difference between successive integers
         simdunpackd1(offset, buffer, backbuffer, b1);//uncompressed
 
 Setup
-=======
+---------
+
 
 make
 make test
@@ -43,9 +44,19 @@ and if you are daring:
 make install 
 
 Go
-===
+--------
 
 If you are a go user, there is a "go" folder where you will find a simple demo.
+
+Other libraries
+----------------
+
+FastPFOR is a C++ research library well suited to compress unsorted arrays:
+https://github.com/lemire/FastPFor
+
+SIMDCompressionAndIntersection is a C++ research library well suited for sorted arrays (differential coding)
+and computing intersections:
+https://github.com/lemire/SIMDCompressionAndIntersection
 
 References
 ------------
