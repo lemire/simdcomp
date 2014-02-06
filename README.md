@@ -3,6 +3,12 @@ simdcomp
 
 A simple C library for compressing lists of integers
 
+Requirements
+=============
+
+- Your processor should support SSE2 (Pentium4 or better)
+- C99 compliant compiler (GCC is assumed)
+- A Linux-like distribution is assumed by the makefile
 
 Usage
 -------
@@ -26,7 +32,20 @@ We used differential coding: we store the difference between successive integers
         simdpackwithoutmaskd1(offset, datain, buffer, b1);//compressed
         simdunpackd1(offset, buffer, backbuffer, b1);//uncompressed
 
+Setup
+=======
 
+make
+make test
+
+and if you are daring:
+
+make install 
+
+Go
+===
+
+If you are a go user, there is a "go" folder where you will find a simple demo.
 
 References
 ------------
