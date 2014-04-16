@@ -4,6 +4,11 @@
 #include <stdio.h>
 #include "simdcomp.h"
 
+
+void testSorted() {
+
+}
+
 int main() {
     int N = 5000 * SIMDBlockSize;
     __m128i * buffer = malloc(SIMDBlockSize * sizeof(uint32_t));
@@ -15,8 +20,15 @@ int main() {
             datain[k] = k * gap;
         uint32_t offset = 0;
         for (int k = 0; k * SIMDBlockSize < N; ++k) {
-            const uint32_t b = maxbits(datain + k * SIMDBlockSize);
-            simdpackwithoutmask(datain + k * SIMDBlockSize, buffer, b);//compressed
+            /////////////////////////////
+            // First part works for general arrays (sorted or unsorted)
+            /////////////////////////////
+        	// we compute the bit width
+        	const uint32_t b = maxbits(datain + k * SIMDBlockSize);
+            // we read 128 integers at "datain + k * SIMDBlockSize" and
+            // write 4 times b1 integers at "buffer"
+            simdpackwithoutmask(datain + k * SIMDBlockSize, buffer, b);
+            // we read back 4 times b1 integers at "buffer" and write 128 integers at backbuffer
             simdunpack(buffer, backbuffer, b);//uncompressed
             for (int j = 0; j < SIMDBlockSize; ++j) {
                 if (backbuffer[j] != datain[k * SIMDBlockSize + j]) {
@@ -24,11 +36,18 @@ int main() {
                     return -2;
                 }
             }
+            /////////////////////////////
+            // next part assumes that the data is sorted (uses differential coding)
+            /////////////////////////////
+            // we compute the bit width
             const uint32_t b1 = simdmaxbitsd1(offset,
                     datain + k * SIMDBlockSize);
+            // we read 128 integers at "datain + k * SIMDBlockSize" and
+            // write 4 times b1 integers at "buffer"
             simdpackwithoutmaskd1(offset, datain + k * SIMDBlockSize, buffer,
-                    b1);//compressed
-            simdunpackd1(offset, buffer, backbuffer, b1);//uncompressed
+                    b1);
+            // we read back 4 times b1 integers at "buffer" and write 128 integers at backbuffer
+            simdunpackd1(offset, buffer, backbuffer, b1);
             for (int j = 0; j < SIMDBlockSize; ++j) {
                 if (backbuffer[j] != datain[k * SIMDBlockSize + j]) {
                     printf("bug in simdpack d1\n");
