@@ -5,10 +5,6 @@
 #include "simdcomp.h"
 
 
-void testSorted() {
-
-}
-
 int main() {
     int N = 5000 * SIMDBlockSize;
     __m128i * buffer = malloc(SIMDBlockSize * sizeof(uint32_t));
@@ -23,8 +19,8 @@ int main() {
             /////////////////////////////
             // First part works for general arrays (sorted or unsorted)
             /////////////////////////////
-        	// we compute the bit width
-        	const uint32_t b = maxbits(datain + k * SIMDBlockSize);
+       	    // we compute the bit width
+            const uint32_t b = maxbits(datain + k * SIMDBlockSize);
             // we read 128 integers at "datain + k * SIMDBlockSize" and
             // write b 128-bit vectors at "buffer"
             simdpackwithoutmask(datain + k * SIMDBlockSize, buffer, b);

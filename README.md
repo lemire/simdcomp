@@ -1,7 +1,7 @@
 simdcomp
 ========
 
-A simple C library for compressing lists of integers
+A simple C library for compressing lists of integers using binary packing and SIMD instructions.
 
 What is it for?
 -------------
@@ -20,6 +20,11 @@ Usage
 -------
 
 Compression works over blocks of 128 integers.
+
+For a complete working example, see example.c (you can build it and
+run it with "make example; ./example").
+
+
 
 1) Lists of integers in random order.
 

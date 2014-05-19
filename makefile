@@ -42,6 +42,9 @@ simdbitpacking.o: ./src/simdbitpacking.c $(HEADERS)
 simdintegratedbitpacking.o: ./src/simdintegratedbitpacking.c  $(HEADERS)
 	$(CC) $(CFLAGS) -c ./src/simdintegratedbitpacking.c -Iinclude  
 
+example: ./example.c    $(HEADERS) $(OBJECTS)
+	$(CC) $(CFLAGS) -o example ./example.c -Iinclude  $(OBJECTS)
+
 unit: ./src/unit.c    $(HEADERS) $(OBJECTS)
 	$(CC) $(CFLAGS) -o unit ./src/unit.c -Iinclude  $(OBJECTS)
 dynunit: ./src/unit.c    $(HEADERS) $(LIBNAME)
