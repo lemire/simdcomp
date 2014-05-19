@@ -3,6 +3,9 @@ simdcomp
 
 A simple C library for compressing lists of integers using binary packing and SIMD instructions.
 
+This library can decode billions of compressed integers per second on most
+desktop or laptop processors.
+
 What is it for?
 -------------
 
