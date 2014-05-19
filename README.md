@@ -1,5 +1,5 @@
-simdcomp
-========
+The SIMDComp library 
+====================
 
 A simple C library for compressing lists of integers
 
