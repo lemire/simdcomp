@@ -3,8 +3,9 @@ The SIMDComp library
 
 A simple C library for compressing lists of integers using binary packing and SIMD instructions.
 
-This library can decode billions of compressed integers per second on most
-desktop or laptop processors.
+This library can decode at least 4 billions of compressed integers per second on most
+desktop or laptop processors. That is, it can decompress data at a rate of 15 GB/s.
+This is significantly faster than generic codecs like gzip, LZO, Snappy or LZ4.
 
 What is it for?
 -------------
