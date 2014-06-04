@@ -5,7 +5,7 @@
 
 CFLAGS = -fPIC -std=c99 -O3 -Wall -Wextra -Wno-unused-parameter -pedantic
 LDFLAGS = -shared
-LIBNAME=libsimdcomp.so.0.0.2
+LIBNAME=libsimdcomp.so.0.0.3
 all:  unit $(LIBNAME)
 test: 
 	./unit
