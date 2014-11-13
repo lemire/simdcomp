@@ -5,6 +5,7 @@
 
 
 static void SIMD_nullunpacker32(const __m128i * _in  , uint32_t *    out) {
+    (void) _in;
     memset(out,0,32 * 4 * 4);
 }
 

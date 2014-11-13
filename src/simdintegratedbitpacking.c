@@ -18,6 +18,7 @@ static inline __m128i PrefixSum(__m128i curr, __m128i prev) {
 
 
 __m128i  iunpack0(__m128i initOffset, const __m128i * _in  , uint32_t *    _out) {
+    (void)        _in;
     __m128i       *out = (__m128i*)(_out);
     const __m128i zero =  _mm_set1_epi32 (0);
 
@@ -39,11 +40,16 @@ __m128i  iunpack0(__m128i initOffset, const __m128i * _in  , uint32_t *    _out)
 
 
 void ipackwithoutmask0(__m128i initOffset , const uint32_t * _in , __m128i *  out) {
-
+    (void) initOffset;
+    (void) _in;
+    (void) out;
 }
 
 
 void ipack0(__m128i initOffset , const uint32_t *  _in , __m128i *   out ) {
+    (void) initOffset;
+    (void) _in;
+    (void) out;
 }
 
 
@@ -16320,6 +16326,7 @@ void ipack31(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
 
 void ipackwithoutmask32(__m128i  initOffset  , const uint32_t *   _in, __m128i *   out) {
     const __m128i       *in = (const __m128i*)(_in);
+    (void)     initOffset;
     __m128i    OutReg;
 
 
@@ -16552,6 +16559,7 @@ void ipackwithoutmask32(__m128i  initOffset  , const uint32_t *   _in, __m128i *
 
 void ipack32(__m128i   initOffset  , const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
+    (void)      initOffset;
     __m128i     OutReg;
 
 
@@ -24622,6 +24630,7 @@ __m128i iunpack31(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
 
 
 __m128i iunpack32(__m128i  initOffset, const  __m128i*   in, uint32_t *    _out) {
+	(void)  initOffset;
 	__m128i * mout = (__m128i *)(_out);
 	__m128i invec;
 	for(size_t k = 0; k < 128/4; ++k) {
