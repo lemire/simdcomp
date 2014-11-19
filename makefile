@@ -3,7 +3,7 @@
 #
 .SUFFIXES: .cpp .o .c .h
 
-CFLAGS = -fPIC -std=c99 -O3 -Wall -Wextra -Wno-unused-parameter -pedantic
+CFLAGS = -fPIC -std=c99 -march=native -O3 -Wall -Wextra -Wno-unused-parameter -pedantic
 LDFLAGS = -shared
 LIBNAME=libsimdcomp.so.0.0.3
 all:  unit $(LIBNAME)
@@ -51,4 +51,4 @@ dynunit: ./src/unit.c    $(HEADERS) $(LIBNAME)
 	$(CC) $(CFLAGS) -o dynunit ./src/unit.c -Iinclude  -lsimdcomp 
 
 clean: 
-	rm -f unit *.o $(LIBNAME)
+	rm -f unit *.o $(LIBNAME) example
