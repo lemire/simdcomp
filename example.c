@@ -24,7 +24,7 @@ size_t compress(uint32_t * datain, size_t length, uint8_t * buffer) {
 
 
 int main() {
-    int REPEAT = 5;
+    int REPEAT = 10;
     int N = 1000000 * SIMDBlockSize;//SIMDBlockSize is 128
     uint32_t * datain = malloc(N * sizeof(uint32_t));
     size_t compsize;
@@ -39,7 +39,7 @@ int main() {
             datain[k] = k * gap;
         uint32_t offset = 0;
         compsize = compress(datain,N,buffer);
-        printf("compression rate = %f \n",  (N * sizeof(uint32_t))/ (compsize * 1.0 ));
+        printf("compression ratio = %f \n",  (N * sizeof(uint32_t))/ (compsize * 1.0 ));
         start = clock();
         uint32_t bogus = 0;
         for(int repeat = 0; repeat < REPEAT; ++repeat) {
@@ -56,7 +56,19 @@ int main() {
         end = clock();
         double numberofseconds = (end-start)/(double)CLOCKS_PER_SEC;
         printf("decoding speed in million of integers per second %f \n",N*REPEAT/(numberofseconds*1000.0*1000.0));
-        printf("ignore me %i \n",bogus);
+        start = clock();
+        for(int repeat = 0; repeat < REPEAT; ++repeat) {
+         uint8_t * decbuffer = buffer;
+         for (int k = 0; k * SIMDBlockSize < N; ++k) {
+            memcpy(backbuffer,decbuffer+k*SIMDBlockSize,SIMDBlockSize*sizeof(uint32_t));
+            bogus += backbuffer[3] - backbuffer[100];
+         }
+        }
+        end = clock();
+        numberofseconds = (end-start)/(double)CLOCKS_PER_SEC;
+         printf("memcpy speed in million of integers per second %f \n",N*REPEAT/(numberofseconds*1000.0*1000.0));
+       printf("ignore me %i \n",bogus);
+       printf("All tests are in CPU cache. Avoid out-of-cache decoding in applications.\n");
     }
     free(buffer);
     free(datain);

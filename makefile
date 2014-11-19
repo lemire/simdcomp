@@ -3,7 +3,7 @@
 #
 .SUFFIXES: .cpp .o .c .h
 
-CFLAGS = -fPIC -std=c99 -march=native -O3 -Wall -Wextra -Wno-unused-parameter -pedantic
+CFLAGS = -fPIC -std=c99 -O3 -march=native -Wall -Wextra -pedantic
 LDFLAGS = -shared
 LIBNAME=libsimdcomp.so.0.0.3
 all:  unit $(LIBNAME)
