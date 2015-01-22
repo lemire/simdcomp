@@ -1,7 +1,6 @@
 #include "simdcomputil.h"
 
-__attribute__((always_inline))
-static inline __m128i Delta(__m128i curr, __m128i prev) {
+static SIMDCOMP_ALWAYS_INLINE __m128i Delta(__m128i curr, __m128i prev) {
     return _mm_sub_epi32(curr,
             _mm_or_si128(_mm_slli_si128(curr, 4), _mm_srli_si128(prev, 12)));
 }
@@ -21,8 +20,7 @@ uint32_t bits(const uint32_t v) {
 #endif
 }
 
-__attribute__ ((pure))
-uint32_t maxbits(const uint32_t * begin) {
+SIMDCOMP_PURE uint32_t maxbits(const uint32_t * begin) {
     uint32_t accumulator = 0;
     for (const uint32_t * k = begin; k != begin + SIMDBlockSize; ++k) {
         accumulator |= *k;
