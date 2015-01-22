@@ -1,10 +1,17 @@
 
 
 
-INC = /Iinclude
+all: lib unit
 
-all:
-	cl.exe $(INC) /mp /arch:SSE2 /c src/simdbitpacking.c src/simdintegratedbitpacking.c src/simdcomputil.c
-	link simdbitpacking.obj simdintegratedbitpacking.obj simdcomputil.obj
+lib:
+	cl.exe /Iinclude /c src/simdbitpacking.c src/simdintegratedbitpacking.c src/simdcomputil.c
+	lib simdbitpacking.obj simdintegratedbitpacking.obj simdcomputil.obj /OUT:simdcomp.lib
 
+unit: lib
+	cl.exe /Iinclude src/unit.c /link simdcomp.lib
+
+clean:
+	del *.obj
+	del *.lib
+	del *.exe
 
