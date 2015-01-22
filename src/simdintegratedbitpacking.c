@@ -3,14 +3,12 @@
  */
 #include "simdintegratedbitpacking.h"
 
-__attribute__((always_inline))
-static inline __m128i Delta(__m128i curr, __m128i prev) {
+static SIMDCOMP_ALWAYS_INLINE __m128i Delta(__m128i curr, __m128i prev) {
     return _mm_sub_epi32(curr,
             _mm_or_si128(_mm_slli_si128(curr, 4), _mm_srli_si128(prev, 12)));
 }
 
-__attribute__((always_inline))
-static inline __m128i PrefixSum(__m128i curr, __m128i prev) {
+static SIMDCOMP_ALWAYS_INLINE __m128i PrefixSum(__m128i curr, __m128i prev) {
     const __m128i _tmp1 = _mm_add_epi32(_mm_slli_si128(curr, 8), curr);
     const __m128i _tmp2 = _mm_add_epi32(_mm_slli_si128(_tmp1, 4), _tmp1);
     return _mm_add_epi32(_tmp2, _mm_shuffle_epi32(prev, 0xff));

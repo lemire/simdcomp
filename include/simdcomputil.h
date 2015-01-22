@@ -5,6 +5,8 @@
 #ifndef SIMDCOMPUTIL_H_
 #define SIMDCOMPUTIL_H_
 
+#include "compat.h"
+
 #include <emmintrin.h>// SSE2 is required
 #include <stdint.h> // use a C99-compliant compiler, please
 
