@@ -1,0 +1,10 @@
+
+
+
+INC = /Iinclude
+
+all:
+	cl.exe $(INC) /mp /arch:SSE2 /c src/simdbitpacking.c src/simdintegratedbitpacking.c src/simdcomputil.c
+	link simdbitpacking.obj simdintegratedbitpacking.obj simdcomputil.obj
+
+
