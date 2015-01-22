@@ -1,5 +1,6 @@
 Upcoming
   - added missing include
+  - improved portability (MSVC)
 Version 0.0.3 (19 May 2014)
   - improved documentation
 Version 0.0.2 (6 February 2014)

@@ -76,8 +76,8 @@ https://github.com/lemire/SIMDCompressionAndIntersection
 References
 ------------
 
-
-Daniel Lemire and Leonid Boytsov, Decoding billions of integers per second through vectorization, Software: Practice & Experience, 2013. 
+Daniel Lemire and Leonid Boytsov, Decoding billions of integers per second through vectorization, 
+Software: Practice & Experience 45 (1), 2015. 
 http://dx.doi.org/10.1002/spe.2203
 
 Daniel Lemire, Leonid Boytsov, Nathan Kurz, SIMD Compression and the
