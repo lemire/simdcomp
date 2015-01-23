@@ -3,7 +3,7 @@
 #include "simdcomp.h"
 
 
-// compresses data from datain to buffer, returns how many bytes written
+/* compresses data from datain to buffer, returns how many bytes written */
 size_t compress(uint32_t * datain, size_t length, uint8_t * buffer) {
     uint32_t offset;
     uint8_t * initout;
@@ -28,12 +28,12 @@ size_t compress(uint32_t * datain, size_t length, uint8_t * buffer) {
 
 int main() {
     int REPEAT = 10, gap;
-    int N = 1000000 * SIMDBlockSize;//SIMDBlockSize is 128
+    int N = 1000000 * SIMDBlockSize;/* SIMDBlockSize is 128 */
     uint32_t * datain = malloc(N * sizeof(uint32_t));
     size_t compsize;
     clock_t start, end;
 
-    uint8_t * buffer = malloc(N * sizeof(uint32_t) + N / SIMDBlockSize); // output buffer
+    uint8_t * buffer = malloc(N * sizeof(uint32_t) + N / SIMDBlockSize); /* output buffer */
     uint32_t * backbuffer = malloc(SIMDBlockSize * sizeof(uint32_t));
     for (gap = 1; gap <= 243; gap *= 3) {
         int k, repeat;
@@ -53,7 +53,7 @@ int main() {
          for (k = 0; k * SIMDBlockSize < N; ++k) {
         	uint8_t b = *decbuffer++;
             simdunpackd1(offset, (__m128i *) decbuffer, backbuffer, b);
-            // do something here with backbuffer
+            /* do something here with backbuffer */
             bogus += backbuffer[3];
             decbuffer += b * sizeof(__m128i);
             offset = backbuffer[SIMDBlockSize - 1];

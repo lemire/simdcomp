@@ -1,12 +1,10 @@
 #include "simdcomputil.h"
 
-static SIMDCOMP_ALWAYS_INLINE __m128i Delta(__m128i curr, __m128i prev) {
-    return _mm_sub_epi32(curr,
-            _mm_or_si128(_mm_slli_si128(curr, 4), _mm_srli_si128(prev, 12)));
-}
+#define Delta(curr, prev) \
+    _mm_sub_epi32(curr, \
+            _mm_or_si128(_mm_slli_si128(curr, 4), _mm_srli_si128(prev, 12)))
 
-
-// returns the integer logarithm of v (bit width)
+/* returns the integer logarithm of v (bit width) */
 uint32_t bits(const uint32_t v) {
 #ifdef _MSC_VER
     unsigned long answer;
@@ -16,7 +14,7 @@ uint32_t bits(const uint32_t v) {
     _BitScanReverse(&answer, v);
     return answer + 1;
 #else
-    return v == 0 ? 0 : 32 - __builtin_clz(v); // assume GCC-like compiler if not microsoft
+    return v == 0 ? 0 : 32 - __builtin_clz(v); /* assume GCC-like compiler if not microsoft */
 #endif
 }
 
@@ -36,7 +34,7 @@ static uint32_t maxbitas32int(const __m128i accumulator) {
 }
 
 
-// maxbit over 128 integers (SIMDBlockSize) with provided initial value
+/* maxbit over 128 integers (SIMDBlockSize) with provided initial value */
 uint32_t simdmaxbitsd1(uint32_t initvalue, const uint32_t * in) {
     __m128i  initoffset = _mm_set1_epi32 (initvalue);
     const __m128i* pin = (const __m128i*)(in);
