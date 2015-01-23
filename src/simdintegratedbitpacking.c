@@ -16,11 +16,12 @@ static SIMDCOMP_ALWAYS_INLINE __m128i PrefixSum(__m128i curr, __m128i prev) {
 
 
 __m128i  iunpack0(__m128i initOffset, const __m128i * _in  , uint32_t *    _out) {
-    (void)        _in;
     __m128i       *out = (__m128i*)(_out);
     const __m128i zero =  _mm_set1_epi32 (0);
+    uint32_t i;
+    (void)        _in;
 
-    for (unsigned i = 0; i < 8; ++i) {
+    for (i = 0; i < 8; ++i) {
     	initOffset = PrefixSum(zero, initOffset);
         _mm_storeu_si128(out++, initOffset);
     	initOffset = PrefixSum(zero, initOffset);
@@ -257,13 +258,13 @@ void ipackwithoutmask1(__m128i  initOffset, const uint32_t *   _in, __m128i *   
 
 void ipack1(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i     OutReg;
+    __m128i     OutReg, CurrIn, InReg;
 
 
     const  __m128i mask =  _mm_set1_epi32(1U); ;
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -668,13 +669,13 @@ void ipackwithoutmask2(__m128i  initOffset, const uint32_t *   _in, __m128i *   
 
 void ipack2(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i     OutReg;
+    __m128i     OutReg, CurrIn, InReg;
 
 
     const  __m128i mask =  _mm_set1_epi32(3U); ;
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -1087,13 +1088,13 @@ void ipackwithoutmask3(__m128i  initOffset, const uint32_t *   _in, __m128i *   
 
 void ipack3(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i     OutReg;
+    __m128i     OutReg, CurrIn, InReg;
 
 
     const  __m128i mask =  _mm_set1_epi32(7U); ;
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -1512,13 +1513,13 @@ void ipackwithoutmask4(__m128i  initOffset, const uint32_t *   _in, __m128i *   
 
 void ipack4(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i     OutReg;
+    __m128i     OutReg, CurrIn, InReg;
 
 
     const  __m128i mask =  _mm_set1_epi32(15U); ;
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -1945,13 +1946,13 @@ void ipackwithoutmask5(__m128i  initOffset, const uint32_t *   _in, __m128i *   
 
 void ipack5(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i     OutReg;
+    __m128i     OutReg, CurrIn, InReg;
 
 
     const  __m128i mask =  _mm_set1_epi32(31U); ;
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -2388,13 +2389,13 @@ void ipackwithoutmask6(__m128i  initOffset, const uint32_t *   _in, __m128i *   
 
 void ipack6(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i     OutReg;
+    __m128i     OutReg, CurrIn, InReg;
 
 
     const  __m128i mask =  _mm_set1_epi32(63U); ;
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -2612,11 +2613,11 @@ void ipack6(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
 
 void ipackwithoutmask7(__m128i  initOffset, const uint32_t *   _in, __m128i *   out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i    OutReg;
+    __m128i    OutReg, CurrIn, InReg;
 
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = Delta(CurrIn, initOffset);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = Delta(CurrIn, initOffset);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -2839,13 +2840,13 @@ void ipackwithoutmask7(__m128i  initOffset, const uint32_t *   _in, __m128i *   
 
 void ipack7(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i     OutReg;
+    __m128i     OutReg, CurrIn, InReg;
 
 
     const  __m128i mask =  _mm_set1_epi32(127U); ;
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -3068,11 +3069,11 @@ void ipack7(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
 
 void ipackwithoutmask8(__m128i  initOffset, const uint32_t *   _in, __m128i *   out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i    OutReg;
+    __m128i    OutReg, CurrIn, InReg;
 
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = Delta(CurrIn, initOffset);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = Delta(CurrIn, initOffset);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -3292,13 +3293,13 @@ void ipackwithoutmask8(__m128i  initOffset, const uint32_t *   _in, __m128i *   
 
 void ipack8(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i     OutReg;
+    __m128i     OutReg, CurrIn, InReg;
 
 
     const  __m128i mask =  _mm_set1_epi32(255U); ;
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -3518,11 +3519,11 @@ void ipack8(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
 
 void ipackwithoutmask9(__m128i  initOffset, const uint32_t *   _in, __m128i *   out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i    OutReg;
+    __m128i    OutReg, CurrIn, InReg;
 
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = Delta(CurrIn, initOffset);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = Delta(CurrIn, initOffset);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -3753,13 +3754,13 @@ void ipackwithoutmask9(__m128i  initOffset, const uint32_t *   _in, __m128i *   
 
 void ipack9(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i     OutReg;
+    __m128i     OutReg, CurrIn, InReg;
 
 
     const  __m128i mask =  _mm_set1_epi32(511U); ;
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -3990,11 +3991,11 @@ void ipack9(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
 
 void ipackwithoutmask10(__m128i  initOffset, const uint32_t *   _in, __m128i *   out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i    OutReg;
+    __m128i    OutReg, CurrIn, InReg;
 
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = Delta(CurrIn, initOffset);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = Delta(CurrIn, initOffset);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -4228,13 +4229,13 @@ void ipackwithoutmask10(__m128i  initOffset, const uint32_t *   _in, __m128i *  
 
 void ipack10(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i     OutReg;
+    __m128i     OutReg, CurrIn, InReg;
 
 
     const  __m128i mask =  _mm_set1_epi32(1023U); ;
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -4468,11 +4469,11 @@ void ipack10(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
 
 void ipackwithoutmask11(__m128i  initOffset, const uint32_t *   _in, __m128i *   out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i    OutReg;
+    __m128i    OutReg, CurrIn, InReg;
 
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = Delta(CurrIn, initOffset);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = Delta(CurrIn, initOffset);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -4711,13 +4712,13 @@ void ipackwithoutmask11(__m128i  initOffset, const uint32_t *   _in, __m128i *  
 
 void ipack11(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i     OutReg;
+    __m128i     OutReg, CurrIn, InReg;
 
 
     const  __m128i mask =  _mm_set1_epi32(2047U); ;
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -4956,11 +4957,11 @@ void ipack11(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
 
 void ipackwithoutmask12(__m128i  initOffset, const uint32_t *   _in, __m128i *   out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i    OutReg;
+    __m128i    OutReg, CurrIn, InReg;
 
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = Delta(CurrIn, initOffset);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = Delta(CurrIn, initOffset);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -5200,13 +5201,13 @@ void ipackwithoutmask12(__m128i  initOffset, const uint32_t *   _in, __m128i *  
 
 void ipack12(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i     OutReg;
+    __m128i     OutReg, CurrIn, InReg;
 
 
     const  __m128i mask =  _mm_set1_epi32(4095U); ;
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -5446,11 +5447,11 @@ void ipack12(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
 
 void ipackwithoutmask13(__m128i  initOffset, const uint32_t *   _in, __m128i *   out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i    OutReg;
+    __m128i    OutReg, CurrIn, InReg;
 
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = Delta(CurrIn, initOffset);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = Delta(CurrIn, initOffset);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -5697,13 +5698,13 @@ void ipackwithoutmask13(__m128i  initOffset, const uint32_t *   _in, __m128i *  
 
 void ipack13(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i     OutReg;
+    __m128i     OutReg, CurrIn, InReg;
 
 
     const  __m128i mask =  _mm_set1_epi32(8191U); ;
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -5950,11 +5951,11 @@ void ipack13(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
 
 void ipackwithoutmask14(__m128i  initOffset, const uint32_t *   _in, __m128i *   out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i    OutReg;
+    __m128i    OutReg, CurrIn, InReg;
 
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = Delta(CurrIn, initOffset);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = Delta(CurrIn, initOffset);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -6204,13 +6205,13 @@ void ipackwithoutmask14(__m128i  initOffset, const uint32_t *   _in, __m128i *  
 
 void ipack14(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i     OutReg;
+    __m128i     OutReg, CurrIn, InReg;
 
 
     const  __m128i mask =  _mm_set1_epi32(16383U); ;
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -6719,13 +6720,13 @@ void ipackwithoutmask15(__m128i  initOffset, const uint32_t *   _in, __m128i *  
 
 void ipack15(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i     OutReg;
+    __m128i     OutReg, CurrIn, InReg;
 
 
     const  __m128i mask =  _mm_set1_epi32(32767U); ;
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -6980,11 +6981,11 @@ void ipack15(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
 
 void ipackwithoutmask16(__m128i  initOffset, const uint32_t *   _in, __m128i *   out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i    OutReg;
+    __m128i    OutReg, CurrIn, InReg;
 
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = Delta(CurrIn, initOffset);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = Delta(CurrIn, initOffset);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -7228,13 +7229,13 @@ void ipackwithoutmask16(__m128i  initOffset, const uint32_t *   _in, __m128i *  
 
 void ipack16(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i     OutReg;
+    __m128i     OutReg, CurrIn, InReg;
 
 
     const  __m128i mask =  _mm_set1_epi32(65535U); ;
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -7478,11 +7479,11 @@ void ipack16(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
 
 void ipackwithoutmask17(__m128i  initOffset, const uint32_t *   _in, __m128i *   out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i    OutReg;
+    __m128i    OutReg, CurrIn, InReg;
 
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = Delta(CurrIn, initOffset);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = Delta(CurrIn, initOffset);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -7745,13 +7746,13 @@ void ipackwithoutmask17(__m128i  initOffset, const uint32_t *   _in, __m128i *  
 
 void ipack17(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i     OutReg;
+    __m128i     OutReg, CurrIn, InReg;
 
 
     const  __m128i mask =  _mm_set1_epi32(131071U); ;
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -8014,11 +8015,11 @@ void ipack17(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
 
 void ipackwithoutmask18(__m128i  initOffset, const uint32_t *   _in, __m128i *   out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i    OutReg;
+    __m128i    OutReg, CurrIn, InReg;
 
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = Delta(CurrIn, initOffset);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = Delta(CurrIn, initOffset);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -8284,13 +8285,13 @@ void ipackwithoutmask18(__m128i  initOffset, const uint32_t *   _in, __m128i *  
 
 void ipack18(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i     OutReg;
+    __m128i     OutReg, CurrIn, InReg;
 
 
     const  __m128i mask =  _mm_set1_epi32(262143U); ;
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -8556,11 +8557,11 @@ void ipack18(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
 
 void ipackwithoutmask19(__m128i  initOffset, const uint32_t *   _in, __m128i *   out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i    OutReg;
+    __m128i    OutReg, CurrIn, InReg;
 
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = Delta(CurrIn, initOffset);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = Delta(CurrIn, initOffset);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -8831,13 +8832,13 @@ void ipackwithoutmask19(__m128i  initOffset, const uint32_t *   _in, __m128i *  
 
 void ipack19(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i     OutReg;
+    __m128i     OutReg, CurrIn, InReg;
 
 
     const  __m128i mask =  _mm_set1_epi32(524287U); ;
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -9108,11 +9109,11 @@ void ipack19(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
 
 void ipackwithoutmask20(__m128i  initOffset, const uint32_t *   _in, __m128i *   out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i    OutReg;
+    __m128i    OutReg, CurrIn, InReg;
 
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = Delta(CurrIn, initOffset);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = Delta(CurrIn, initOffset);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -9384,13 +9385,13 @@ void ipackwithoutmask20(__m128i  initOffset, const uint32_t *   _in, __m128i *  
 
 void ipack20(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i     OutReg;
+    __m128i     OutReg, CurrIn, InReg;
 
 
     const  __m128i mask =  _mm_set1_epi32(1048575U); ;
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -9662,11 +9663,11 @@ void ipack20(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
 
 void ipackwithoutmask21(__m128i  initOffset, const uint32_t *   _in, __m128i *   out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i    OutReg;
+    __m128i    OutReg, CurrIn, InReg;
 
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = Delta(CurrIn, initOffset);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = Delta(CurrIn, initOffset);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -9945,13 +9946,13 @@ void ipackwithoutmask21(__m128i  initOffset, const uint32_t *   _in, __m128i *  
 
 void ipack21(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i     OutReg;
+    __m128i     OutReg, CurrIn, InReg;
 
 
     const  __m128i mask =  _mm_set1_epi32(2097151U); ;
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -10230,11 +10231,11 @@ void ipack21(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
 
 void ipackwithoutmask22(__m128i  initOffset, const uint32_t *   _in, __m128i *   out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i    OutReg;
+    __m128i    OutReg, CurrIn, InReg;
 
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = Delta(CurrIn, initOffset);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = Delta(CurrIn, initOffset);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -10516,13 +10517,13 @@ void ipackwithoutmask22(__m128i  initOffset, const uint32_t *   _in, __m128i *  
 
 void ipack22(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i     OutReg;
+    __m128i     OutReg, CurrIn, InReg;
 
 
     const  __m128i mask =  _mm_set1_epi32(4194303U); ;
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -10804,11 +10805,11 @@ void ipack22(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
 
 void ipackwithoutmask23(__m128i  initOffset, const uint32_t *   _in, __m128i *   out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i    OutReg;
+    __m128i    OutReg, CurrIn, InReg;
 
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = Delta(CurrIn, initOffset);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = Delta(CurrIn, initOffset);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -11095,13 +11096,13 @@ void ipackwithoutmask23(__m128i  initOffset, const uint32_t *   _in, __m128i *  
 
 void ipack23(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i     OutReg;
+    __m128i     OutReg, CurrIn, InReg;
 
 
     const  __m128i mask =  _mm_set1_epi32(8388607U); ;
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -11388,11 +11389,11 @@ void ipack23(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
 
 void ipackwithoutmask24(__m128i  initOffset, const uint32_t *   _in, __m128i *   out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i    OutReg;
+    __m128i    OutReg, CurrIn, InReg;
 
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = Delta(CurrIn, initOffset);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = Delta(CurrIn, initOffset);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -11676,13 +11677,13 @@ void ipackwithoutmask24(__m128i  initOffset, const uint32_t *   _in, __m128i *  
 
 void ipack24(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i     OutReg;
+    __m128i     OutReg, CurrIn, InReg;
 
 
     const  __m128i mask =  _mm_set1_epi32(16777215U); ;
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -11966,11 +11967,11 @@ void ipack24(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
 
 void ipackwithoutmask25(__m128i  initOffset, const uint32_t *   _in, __m128i *   out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i    OutReg;
+    __m128i    OutReg, CurrIn, InReg;
 
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = Delta(CurrIn, initOffset);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = Delta(CurrIn, initOffset);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -12265,13 +12266,13 @@ void ipackwithoutmask25(__m128i  initOffset, const uint32_t *   _in, __m128i *  
 
 void ipack25(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i     OutReg;
+    __m128i     OutReg, CurrIn, InReg;
 
 
     const  __m128i mask =  _mm_set1_epi32(33554431U); ;
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -12566,11 +12567,11 @@ void ipack25(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
 
 void ipackwithoutmask26(__m128i  initOffset, const uint32_t *   _in, __m128i *   out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i    OutReg;
+    __m128i    OutReg, CurrIn, InReg;
 
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = Delta(CurrIn, initOffset);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = Delta(CurrIn, initOffset);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -12868,13 +12869,13 @@ void ipackwithoutmask26(__m128i  initOffset, const uint32_t *   _in, __m128i *  
 
 void ipack26(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i     OutReg;
+    __m128i     OutReg, CurrIn, InReg;
 
 
     const  __m128i mask =  _mm_set1_epi32(67108863U); ;
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -13172,11 +13173,11 @@ void ipack26(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
 
 void ipackwithoutmask27(__m128i  initOffset, const uint32_t *   _in, __m128i *   out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i    OutReg;
+    __m128i    OutReg, CurrIn, InReg;
 
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = Delta(CurrIn, initOffset);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = Delta(CurrIn, initOffset);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -13479,13 +13480,13 @@ void ipackwithoutmask27(__m128i  initOffset, const uint32_t *   _in, __m128i *  
 
 void ipack27(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i     OutReg;
+    __m128i     OutReg, CurrIn, InReg;
 
 
     const  __m128i mask =  _mm_set1_epi32(134217727U); ;
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -13788,11 +13789,11 @@ void ipack27(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
 
 void ipackwithoutmask28(__m128i  initOffset, const uint32_t *   _in, __m128i *   out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i    OutReg;
+    __m128i    OutReg, CurrIn, InReg;
 
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = Delta(CurrIn, initOffset);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = Delta(CurrIn, initOffset);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -14096,13 +14097,13 @@ void ipackwithoutmask28(__m128i  initOffset, const uint32_t *   _in, __m128i *  
 
 void ipack28(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i     OutReg;
+    __m128i     OutReg, CurrIn, InReg;
 
 
     const  __m128i mask =  _mm_set1_epi32(268435455U); ;
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -14406,11 +14407,11 @@ void ipack28(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
 
 void ipackwithoutmask29(__m128i  initOffset, const uint32_t *   _in, __m128i *   out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i    OutReg;
+    __m128i    OutReg, CurrIn, InReg;
 
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = Delta(CurrIn, initOffset);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = Delta(CurrIn, initOffset);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -14721,13 +14722,13 @@ void ipackwithoutmask29(__m128i  initOffset, const uint32_t *   _in, __m128i *  
 
 void ipack29(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i     OutReg;
+    __m128i     OutReg, CurrIn, InReg;
 
 
     const  __m128i mask =  _mm_set1_epi32(536870911U); ;
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -15038,11 +15039,11 @@ void ipack29(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
 
 void ipackwithoutmask30(__m128i  initOffset, const uint32_t *   _in, __m128i *   out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i    OutReg;
+    __m128i    OutReg, CurrIn, InReg;
 
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = Delta(CurrIn, initOffset);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = Delta(CurrIn, initOffset);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -15356,13 +15357,13 @@ void ipackwithoutmask30(__m128i  initOffset, const uint32_t *   _in, __m128i *  
 
 void ipack30(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i     OutReg;
+    __m128i     OutReg, CurrIn, InReg;
 
 
     const  __m128i mask =  _mm_set1_epi32(1073741823U); ;
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -15676,11 +15677,11 @@ void ipack30(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
 
 void ipackwithoutmask31(__m128i  initOffset, const uint32_t *   _in, __m128i *   out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i    OutReg;
+    __m128i    OutReg, CurrIn, InReg;
 
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = Delta(CurrIn, initOffset);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = Delta(CurrIn, initOffset);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -15999,13 +16000,13 @@ void ipackwithoutmask31(__m128i  initOffset, const uint32_t *   _in, __m128i *  
 
 void ipack31(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i     OutReg;
+    __m128i     OutReg, CurrIn, InReg;
 
 
     const  __m128i mask =  _mm_set1_epi32(2147483647U); ;
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -16324,11 +16325,11 @@ void ipack31(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
 
 void ipackwithoutmask32(__m128i  initOffset  , const uint32_t *   _in, __m128i *   out) {
     const __m128i       *in = (const __m128i*)(_in);
+    __m128i    OutReg, InReg;
     (void)     initOffset;
-    __m128i    OutReg;
 
 
-    __m128i InReg = _mm_loadu_si128(in);
+    InReg = _mm_loadu_si128(in);
     OutReg = InReg;
     _mm_storeu_si128(out, OutReg);
 
@@ -16557,12 +16558,12 @@ void ipackwithoutmask32(__m128i  initOffset  , const uint32_t *   _in, __m128i *
 
 void ipack32(__m128i   initOffset  , const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
+    __m128i     OutReg, InReg;
     (void)      initOffset;
-    __m128i     OutReg;
 
 
 
-    __m128i InReg = _mm_loadu_si128(in);
+    InReg = _mm_loadu_si128(in);
     OutReg = InReg;
     _mm_storeu_si128(out, OutReg);
 
@@ -24628,10 +24629,11 @@ __m128i iunpack31(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
 
 
 __m128i iunpack32(__m128i  initOffset, const  __m128i*   in, uint32_t *    _out) {
-	(void)  initOffset;
 	__m128i * mout = (__m128i *)(_out);
 	__m128i invec;
-	for(size_t k = 0; k < 128/4; ++k) {
+	size_t k;
+	(void)  initOffset;
+	for(k = 0; k < 128/4; ++k) {
 		invec =  _mm_loadu_si128(in++);
 	    _mm_storeu_si128(mout++, invec);
 	}

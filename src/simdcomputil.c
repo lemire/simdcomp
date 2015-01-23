@@ -9,10 +9,10 @@ static SIMDCOMP_ALWAYS_INLINE __m128i Delta(__m128i curr, __m128i prev) {
 // returns the integer logarithm of v (bit width)
 uint32_t bits(const uint32_t v) {
 #ifdef _MSC_VER
+    unsigned long answer;
     if (v == 0) {
         return 0;
     }
-    unsigned long answer;
     _BitScanReverse(&answer, v);
     return answer + 1;
 #else
@@ -22,7 +22,8 @@ uint32_t bits(const uint32_t v) {
 
 SIMDCOMP_PURE uint32_t maxbits(const uint32_t * begin) {
     uint32_t accumulator = 0;
-    for (const uint32_t * k = begin; k != begin + SIMDBlockSize; ++k) {
+    const uint32_t * k = begin;
+    for (; k != begin + SIMDBlockSize; ++k) {
         accumulator |= *k;
     }
     return bits(accumulator);
@@ -42,7 +43,8 @@ uint32_t simdmaxbitsd1(uint32_t initvalue, const uint32_t * in) {
     __m128i newvec = _mm_load_si128(pin);
     __m128i accumulator = Delta(newvec , initoffset);
     __m128i oldvec = newvec;
-    for(uint32_t k = 1; 4*k < SIMDBlockSize; ++k) {
+    uint32_t k = 1;
+    for(; 4*k < SIMDBlockSize; ++k) {
         newvec = _mm_load_si128(pin+k);
         accumulator = _mm_or_si128(accumulator,Delta(newvec , oldvec));
         oldvec = newvec;
