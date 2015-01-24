@@ -36,24 +36,37 @@ ARFLAGS = /nologo /LTCG
 LDFLAGS = /nologo /LTCG /DYNAMICBASE
 !ENDIF
 
-all: lib unit unit_chars example
+LIB_OBJS = simdbitpacking.obj simdintegratedbitpacking.obj simdcomputil.obj
 
-lib:
+
+all: lib dll unit unit_chars example
+
+
+$(LIB_OBJS):
 	$(CC) $(INC) $(CFLAGS) /c src/simdbitpacking.c src/simdintegratedbitpacking.c src/simdcomputil.c
-	$(AR) $(ARFLAGS) simdbitpacking.obj simdintegratedbitpacking.obj simdcomputil.obj /OUT:simdcomp.lib
+
+lib: $(LIB_OBJS)
+	$(AR) $(ARFLAGS) /OUT:simdcomp_a.lib $(LIB_OBJS)
+
+dll: $(LIB_OBJS)
+	$(LINK) /DLL $(LDFLAGS) /OUT:simdcomp.dll /IMPLIB:simdcomp.lib /DEF:simdcomp.def $(LIB_OBJS)
 
 unit: lib
+	$(CC) $(INC) $(CFLAGS) /c src/unit.c 
+	$(LINK) $(LDFLAGS) /OUT:unit.exe unit.obj simdcomp_a.lib
+
+dynunit: dll
 	$(CC) $(INC) $(CFLAGS) /c src/unit.c 
 	$(LINK) $(LDFLAGS) /OUT:unit.exe unit.obj simdcomp.lib
 
 unit_chars: lib
 	$(CC) $(INC) $(CFLAGS) /c src/unit_chars.c
-	$(LINK) $(LDFLAGS) /OUT:unit_chars.exe unit_chars.obj simdcomp.lib
+	$(LINK) $(LDFLAGS) /OUT:unit_chars.exe unit_chars.obj simdcomp_a.lib
 
 
 example: lib
 	$(CC) $(INC) $(CFLAGS) /c example.c
-	$(LINK) $(LDFLAGS) /OUT:example.exe example.obj simdcomp.lib
+	$(LINK) $(LDFLAGS) /OUT:example.exe example.obj simdcomp_a.lib
 
 clean:
 	del /Q *.obj
