@@ -7,10 +7,7 @@
 #include "simdcomp.h"
 
 
-static SIMDCOMP_ALWAYS_INLINE uint8_t get_random_char(void)
-{
-    return (uint8_t)(26 * (rand() / (RAND_MAX + 1.0)) + 97);
-}
+#define get_random_char() (uint8_t)(26 * (rand() / (RAND_MAX + 1.0)) + 97);
 
 
 int main() {

@@ -6,9 +6,10 @@
 CFLAGS = -fPIC -std=c89 -O3 -march=native -Wall -Wextra -pedantic
 LDFLAGS = -shared
 LIBNAME=libsimdcomp.so.0.0.3
-all:  unit $(LIBNAME)
+all:  unit unit_chars $(LIBNAME)
 test: 
 	./unit
+	./unit_chars
 install: $(OBJECTS)
 	cp $(LIBNAME) /usr/local/lib
 	ln -s /usr/local/lib/$(LIBNAME) /usr/local/lib/libsimdcomp.so
@@ -50,5 +51,7 @@ unit: ./src/unit.c    $(HEADERS) $(OBJECTS)
 dynunit: ./src/unit.c    $(HEADERS) $(LIBNAME)
 	$(CC) $(CFLAGS) -o dynunit ./src/unit.c -Iinclude  -lsimdcomp 
 
+unit_chars: ./src/unit_chars.c    $(HEADERS) $(OBJECTS)
+	$(CC) $(CFLAGS) -o unit_chars ./src/unit_chars.c -Iinclude  $(OBJECTS)
 clean: 
 	rm -f unit *.o $(LIBNAME) example
