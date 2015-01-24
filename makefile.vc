@@ -1,23 +1,63 @@
 
+!IFNDEF MACHINE
+!IF "$(PROCESSOR_ARCHITECTURE)"=="AMD64"
+MACHINE=x64
+!ELSE
+MACHINE=x86
+!ENDIF
+!ENDIF
 
+!IFNDEF DEBUG
+DEBUG=no
+!ENDIF
+
+!IFNDEF CC
+CC=cl.exe
+!ENDIF
+
+!IFNDEF AR
+AR=lib.exe
+!ENDIF
+
+!IFNDEF LINK
+LINK=link.exe
+!ENDIF
+
+
+INC = /Iinclude
+
+!IF "$(DEBUG)"=="yes"
+CFLAGS = /nologo /MDd /LDd /Od /Zi /D_DEBUG /RTC1 /W3 /GS /Gm
+ARFLAGS = /nologo
+LDFLAGS = /nologo
+!ELSE
+CFLAGS = /nologo /MD /O2 /Zi /DNDEBUG /W3 /Gm- /GS /Gy /Oi /GL /MP
+ARFLAGS = /nologo /LTCG
+LDFLAGS = /nologo /LTCG /DYNAMICBASE
+!ENDIF
 
 all: lib unit unit_chars example
 
 lib:
-	cl.exe /Iinclude /c src/simdbitpacking.c src/simdintegratedbitpacking.c src/simdcomputil.c
-	lib simdbitpacking.obj simdintegratedbitpacking.obj simdcomputil.obj /OUT:simdcomp.lib
+	$(CC) $(INC) $(CFLAGS) /c src/simdbitpacking.c src/simdintegratedbitpacking.c src/simdcomputil.c
+	$(AR) $(ARFLAGS) simdbitpacking.obj simdintegratedbitpacking.obj simdcomputil.obj /OUT:simdcomp.lib
 
 unit: lib
-	cl.exe /Iinclude src/unit.c /link simdcomp.lib
+	$(CC) $(INC) $(CFLAGS) /c src/unit.c 
+	$(LINK) $(LDFLAGS) /OUT:unit.exe unit.obj simdcomp.lib
 
 unit_chars: lib
-	cl.exe /Iinclude src/unit_chars.c /link simdcomp.lib
+	$(CC) $(INC) $(CFLAGS) /c src/unit_chars.c
+	$(LINK) $(LDFLAGS) /OUT:unit_chars.exe unit_chars.obj simdcomp.lib
+
 
 example: lib
-	cl.exe /Iinclude example.c /link simdcomp.lib
+	$(CC) $(INC) $(CFLAGS) /c example.c
+	$(LINK) $(LDFLAGS) /OUT:example.exe example.obj simdcomp.lib
 
 clean:
-	del *.obj
-	del *.lib
-	del *.exe
+	del /Q *.obj
+	del /Q *.lib
+	del /Q *.exe
+	del /Q *.dll
 
