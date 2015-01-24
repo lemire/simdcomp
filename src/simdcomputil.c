@@ -1,28 +1,27 @@
 #include "simdcomputil.h"
 
-static SIMDCOMP_ALWAYS_INLINE __m128i Delta(__m128i curr, __m128i prev) {
-    return _mm_sub_epi32(curr,
-            _mm_or_si128(_mm_slli_si128(curr, 4), _mm_srli_si128(prev, 12)));
-}
+#define Delta(curr, prev) \
+    _mm_sub_epi32(curr, \
+            _mm_or_si128(_mm_slli_si128(curr, 4), _mm_srli_si128(prev, 12)))
 
-
-// returns the integer logarithm of v (bit width)
+/* returns the integer logarithm of v (bit width) */
 uint32_t bits(const uint32_t v) {
 #ifdef _MSC_VER
+    unsigned long answer;
     if (v == 0) {
         return 0;
     }
-    unsigned long answer;
     _BitScanReverse(&answer, v);
     return answer + 1;
 #else
-    return v == 0 ? 0 : 32 - __builtin_clz(v); // assume GCC-like compiler if not microsoft
+    return v == 0 ? 0 : 32 - __builtin_clz(v); /* assume GCC-like compiler if not microsoft */
 #endif
 }
 
 SIMDCOMP_PURE uint32_t maxbits(const uint32_t * begin) {
     uint32_t accumulator = 0;
-    for (const uint32_t * k = begin; k != begin + SIMDBlockSize; ++k) {
+    const uint32_t * k = begin;
+    for (; k != begin + SIMDBlockSize; ++k) {
         accumulator |= *k;
     }
     return bits(accumulator);
@@ -35,14 +34,15 @@ static uint32_t maxbitas32int(const __m128i accumulator) {
 }
 
 
-// maxbit over 128 integers (SIMDBlockSize) with provided initial value
+/* maxbit over 128 integers (SIMDBlockSize) with provided initial value */
 uint32_t simdmaxbitsd1(uint32_t initvalue, const uint32_t * in) {
     __m128i  initoffset = _mm_set1_epi32 (initvalue);
     const __m128i* pin = (const __m128i*)(in);
     __m128i newvec = _mm_load_si128(pin);
     __m128i accumulator = Delta(newvec , initoffset);
     __m128i oldvec = newvec;
-    for(uint32_t k = 1; 4*k < SIMDBlockSize; ++k) {
+    uint32_t k = 1;
+    for(; 4*k < SIMDBlockSize; ++k) {
         newvec = _mm_load_si128(pin+k);
         accumulator = _mm_or_si128(accumulator,Delta(newvec , oldvec));
         oldvec = newvec;

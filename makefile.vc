@@ -1,7 +1,7 @@
 
 
 
-all: lib unit example
+all: lib unit unit_chars example
 
 lib:
 	cl.exe /Iinclude /c src/simdbitpacking.c src/simdintegratedbitpacking.c src/simdcomputil.c
@@ -9,6 +9,9 @@ lib:
 
 unit: lib
 	cl.exe /Iinclude src/unit.c /link simdcomp.lib
+
+unit_chars: lib
+	cl.exe /Iinclude src/unit_chars.c /link simdcomp.lib
 
 example: lib
 	cl.exe /Iinclude example.c /link simdcomp.lib

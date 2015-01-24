@@ -3,31 +3,30 @@
  */
 #include "simdintegratedbitpacking.h"
 
-static SIMDCOMP_ALWAYS_INLINE __m128i Delta(__m128i curr, __m128i prev) {
-    return _mm_sub_epi32(curr,
-            _mm_or_si128(_mm_slli_si128(curr, 4), _mm_srli_si128(prev, 12)));
-}
 
-static SIMDCOMP_ALWAYS_INLINE __m128i PrefixSum(__m128i curr, __m128i prev) {
-    const __m128i _tmp1 = _mm_add_epi32(_mm_slli_si128(curr, 8), curr);
-    const __m128i _tmp2 = _mm_add_epi32(_mm_slli_si128(_tmp1, 4), _tmp1);
-    return _mm_add_epi32(_tmp2, _mm_shuffle_epi32(prev, 0xff));
-}
+#define Delta(curr, prev) _mm_sub_epi32(curr, \
+            _mm_or_si128(_mm_slli_si128(curr, 4), _mm_srli_si128(prev, 12)))
 
+#define PrefixSum(ret, curr, prev) do { \
+	const __m128i _tmp1 = _mm_add_epi32(_mm_slli_si128(curr, 8), curr); \
+	const __m128i _tmp2 = _mm_add_epi32(_mm_slli_si128(_tmp1, 4), _tmp1); \
+	ret = _mm_add_epi32(_tmp2, _mm_shuffle_epi32(prev, 0xff)); \
+	} while (0)
 
 __m128i  iunpack0(__m128i initOffset, const __m128i * _in  , uint32_t *    _out) {
-    (void)        _in;
     __m128i       *out = (__m128i*)(_out);
     const __m128i zero =  _mm_set1_epi32 (0);
+    uint32_t i;
+    (void)        _in;
 
-    for (unsigned i = 0; i < 8; ++i) {
-    	initOffset = PrefixSum(zero, initOffset);
+    for (i = 0; i < 8; ++i) {
+    	PrefixSum(initOffset, zero, initOffset);
         _mm_storeu_si128(out++, initOffset);
-    	initOffset = PrefixSum(zero, initOffset);
+    	PrefixSum(initOffset, zero, initOffset);
     	_mm_storeu_si128(out++, initOffset);
-    	initOffset = PrefixSum(zero, initOffset);
+    	PrefixSum(initOffset, zero, initOffset);
         _mm_storeu_si128(out++, initOffset);
-    	initOffset = PrefixSum(zero, initOffset);
+    	PrefixSum(initOffset, zero, initOffset);
         _mm_storeu_si128(out++, initOffset);
     }
 
@@ -257,13 +256,13 @@ void ipackwithoutmask1(__m128i  initOffset, const uint32_t *   _in, __m128i *   
 
 void ipack1(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i     OutReg;
+    __m128i     OutReg, CurrIn, InReg;
 
 
     const  __m128i mask =  _mm_set1_epi32(1U); ;
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -668,13 +667,13 @@ void ipackwithoutmask2(__m128i  initOffset, const uint32_t *   _in, __m128i *   
 
 void ipack2(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i     OutReg;
+    __m128i     OutReg, CurrIn, InReg;
 
 
     const  __m128i mask =  _mm_set1_epi32(3U); ;
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -1087,13 +1086,13 @@ void ipackwithoutmask3(__m128i  initOffset, const uint32_t *   _in, __m128i *   
 
 void ipack3(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i     OutReg;
+    __m128i     OutReg, CurrIn, InReg;
 
 
     const  __m128i mask =  _mm_set1_epi32(7U); ;
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -1512,13 +1511,13 @@ void ipackwithoutmask4(__m128i  initOffset, const uint32_t *   _in, __m128i *   
 
 void ipack4(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i     OutReg;
+    __m128i     OutReg, CurrIn, InReg;
 
 
     const  __m128i mask =  _mm_set1_epi32(15U); ;
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -1945,13 +1944,13 @@ void ipackwithoutmask5(__m128i  initOffset, const uint32_t *   _in, __m128i *   
 
 void ipack5(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i     OutReg;
+    __m128i     OutReg, CurrIn, InReg;
 
 
     const  __m128i mask =  _mm_set1_epi32(31U); ;
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -2388,13 +2387,13 @@ void ipackwithoutmask6(__m128i  initOffset, const uint32_t *   _in, __m128i *   
 
 void ipack6(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i     OutReg;
+    __m128i     OutReg, CurrIn, InReg;
 
 
     const  __m128i mask =  _mm_set1_epi32(63U); ;
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -2612,11 +2611,11 @@ void ipack6(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
 
 void ipackwithoutmask7(__m128i  initOffset, const uint32_t *   _in, __m128i *   out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i    OutReg;
+    __m128i    OutReg, CurrIn, InReg;
 
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = Delta(CurrIn, initOffset);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = Delta(CurrIn, initOffset);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -2839,13 +2838,13 @@ void ipackwithoutmask7(__m128i  initOffset, const uint32_t *   _in, __m128i *   
 
 void ipack7(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i     OutReg;
+    __m128i     OutReg, CurrIn, InReg;
 
 
     const  __m128i mask =  _mm_set1_epi32(127U); ;
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -3068,11 +3067,11 @@ void ipack7(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
 
 void ipackwithoutmask8(__m128i  initOffset, const uint32_t *   _in, __m128i *   out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i    OutReg;
+    __m128i    OutReg, CurrIn, InReg;
 
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = Delta(CurrIn, initOffset);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = Delta(CurrIn, initOffset);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -3292,13 +3291,13 @@ void ipackwithoutmask8(__m128i  initOffset, const uint32_t *   _in, __m128i *   
 
 void ipack8(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i     OutReg;
+    __m128i     OutReg, CurrIn, InReg;
 
 
     const  __m128i mask =  _mm_set1_epi32(255U); ;
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -3518,11 +3517,11 @@ void ipack8(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
 
 void ipackwithoutmask9(__m128i  initOffset, const uint32_t *   _in, __m128i *   out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i    OutReg;
+    __m128i    OutReg, CurrIn, InReg;
 
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = Delta(CurrIn, initOffset);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = Delta(CurrIn, initOffset);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -3753,13 +3752,13 @@ void ipackwithoutmask9(__m128i  initOffset, const uint32_t *   _in, __m128i *   
 
 void ipack9(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i     OutReg;
+    __m128i     OutReg, CurrIn, InReg;
 
 
     const  __m128i mask =  _mm_set1_epi32(511U); ;
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -3990,11 +3989,11 @@ void ipack9(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
 
 void ipackwithoutmask10(__m128i  initOffset, const uint32_t *   _in, __m128i *   out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i    OutReg;
+    __m128i    OutReg, CurrIn, InReg;
 
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = Delta(CurrIn, initOffset);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = Delta(CurrIn, initOffset);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -4228,13 +4227,13 @@ void ipackwithoutmask10(__m128i  initOffset, const uint32_t *   _in, __m128i *  
 
 void ipack10(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i     OutReg;
+    __m128i     OutReg, CurrIn, InReg;
 
 
     const  __m128i mask =  _mm_set1_epi32(1023U); ;
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -4468,11 +4467,11 @@ void ipack10(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
 
 void ipackwithoutmask11(__m128i  initOffset, const uint32_t *   _in, __m128i *   out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i    OutReg;
+    __m128i    OutReg, CurrIn, InReg;
 
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = Delta(CurrIn, initOffset);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = Delta(CurrIn, initOffset);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -4711,13 +4710,13 @@ void ipackwithoutmask11(__m128i  initOffset, const uint32_t *   _in, __m128i *  
 
 void ipack11(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i     OutReg;
+    __m128i     OutReg, CurrIn, InReg;
 
 
     const  __m128i mask =  _mm_set1_epi32(2047U); ;
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -4956,11 +4955,11 @@ void ipack11(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
 
 void ipackwithoutmask12(__m128i  initOffset, const uint32_t *   _in, __m128i *   out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i    OutReg;
+    __m128i    OutReg, CurrIn, InReg;
 
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = Delta(CurrIn, initOffset);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = Delta(CurrIn, initOffset);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -5200,13 +5199,13 @@ void ipackwithoutmask12(__m128i  initOffset, const uint32_t *   _in, __m128i *  
 
 void ipack12(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i     OutReg;
+    __m128i     OutReg, CurrIn, InReg;
 
 
     const  __m128i mask =  _mm_set1_epi32(4095U); ;
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -5446,11 +5445,11 @@ void ipack12(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
 
 void ipackwithoutmask13(__m128i  initOffset, const uint32_t *   _in, __m128i *   out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i    OutReg;
+    __m128i    OutReg, CurrIn, InReg;
 
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = Delta(CurrIn, initOffset);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = Delta(CurrIn, initOffset);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -5697,13 +5696,13 @@ void ipackwithoutmask13(__m128i  initOffset, const uint32_t *   _in, __m128i *  
 
 void ipack13(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i     OutReg;
+    __m128i     OutReg, CurrIn, InReg;
 
 
     const  __m128i mask =  _mm_set1_epi32(8191U); ;
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -5950,11 +5949,11 @@ void ipack13(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
 
 void ipackwithoutmask14(__m128i  initOffset, const uint32_t *   _in, __m128i *   out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i    OutReg;
+    __m128i    OutReg, CurrIn, InReg;
 
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = Delta(CurrIn, initOffset);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = Delta(CurrIn, initOffset);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -6204,13 +6203,13 @@ void ipackwithoutmask14(__m128i  initOffset, const uint32_t *   _in, __m128i *  
 
 void ipack14(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i     OutReg;
+    __m128i     OutReg, CurrIn, InReg;
 
 
     const  __m128i mask =  _mm_set1_epi32(16383U); ;
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -6719,13 +6718,13 @@ void ipackwithoutmask15(__m128i  initOffset, const uint32_t *   _in, __m128i *  
 
 void ipack15(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i     OutReg;
+    __m128i     OutReg, CurrIn, InReg;
 
 
     const  __m128i mask =  _mm_set1_epi32(32767U); ;
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -6980,11 +6979,11 @@ void ipack15(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
 
 void ipackwithoutmask16(__m128i  initOffset, const uint32_t *   _in, __m128i *   out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i    OutReg;
+    __m128i    OutReg, CurrIn, InReg;
 
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = Delta(CurrIn, initOffset);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = Delta(CurrIn, initOffset);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -7228,13 +7227,13 @@ void ipackwithoutmask16(__m128i  initOffset, const uint32_t *   _in, __m128i *  
 
 void ipack16(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i     OutReg;
+    __m128i     OutReg, CurrIn, InReg;
 
 
     const  __m128i mask =  _mm_set1_epi32(65535U); ;
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -7478,11 +7477,11 @@ void ipack16(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
 
 void ipackwithoutmask17(__m128i  initOffset, const uint32_t *   _in, __m128i *   out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i    OutReg;
+    __m128i    OutReg, CurrIn, InReg;
 
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = Delta(CurrIn, initOffset);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = Delta(CurrIn, initOffset);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -7745,13 +7744,13 @@ void ipackwithoutmask17(__m128i  initOffset, const uint32_t *   _in, __m128i *  
 
 void ipack17(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i     OutReg;
+    __m128i     OutReg, CurrIn, InReg;
 
 
     const  __m128i mask =  _mm_set1_epi32(131071U); ;
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -8014,11 +8013,11 @@ void ipack17(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
 
 void ipackwithoutmask18(__m128i  initOffset, const uint32_t *   _in, __m128i *   out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i    OutReg;
+    __m128i    OutReg, CurrIn, InReg;
 
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = Delta(CurrIn, initOffset);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = Delta(CurrIn, initOffset);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -8284,13 +8283,13 @@ void ipackwithoutmask18(__m128i  initOffset, const uint32_t *   _in, __m128i *  
 
 void ipack18(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i     OutReg;
+    __m128i     OutReg, CurrIn, InReg;
 
 
     const  __m128i mask =  _mm_set1_epi32(262143U); ;
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -8556,11 +8555,11 @@ void ipack18(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
 
 void ipackwithoutmask19(__m128i  initOffset, const uint32_t *   _in, __m128i *   out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i    OutReg;
+    __m128i    OutReg, CurrIn, InReg;
 
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = Delta(CurrIn, initOffset);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = Delta(CurrIn, initOffset);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -8831,13 +8830,13 @@ void ipackwithoutmask19(__m128i  initOffset, const uint32_t *   _in, __m128i *  
 
 void ipack19(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i     OutReg;
+    __m128i     OutReg, CurrIn, InReg;
 
 
     const  __m128i mask =  _mm_set1_epi32(524287U); ;
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -9108,11 +9107,11 @@ void ipack19(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
 
 void ipackwithoutmask20(__m128i  initOffset, const uint32_t *   _in, __m128i *   out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i    OutReg;
+    __m128i    OutReg, CurrIn, InReg;
 
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = Delta(CurrIn, initOffset);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = Delta(CurrIn, initOffset);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -9384,13 +9383,13 @@ void ipackwithoutmask20(__m128i  initOffset, const uint32_t *   _in, __m128i *  
 
 void ipack20(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i     OutReg;
+    __m128i     OutReg, CurrIn, InReg;
 
 
     const  __m128i mask =  _mm_set1_epi32(1048575U); ;
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -9662,11 +9661,11 @@ void ipack20(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
 
 void ipackwithoutmask21(__m128i  initOffset, const uint32_t *   _in, __m128i *   out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i    OutReg;
+    __m128i    OutReg, CurrIn, InReg;
 
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = Delta(CurrIn, initOffset);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = Delta(CurrIn, initOffset);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -9945,13 +9944,13 @@ void ipackwithoutmask21(__m128i  initOffset, const uint32_t *   _in, __m128i *  
 
 void ipack21(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i     OutReg;
+    __m128i     OutReg, CurrIn, InReg;
 
 
     const  __m128i mask =  _mm_set1_epi32(2097151U); ;
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -10230,11 +10229,11 @@ void ipack21(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
 
 void ipackwithoutmask22(__m128i  initOffset, const uint32_t *   _in, __m128i *   out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i    OutReg;
+    __m128i    OutReg, CurrIn, InReg;
 
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = Delta(CurrIn, initOffset);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = Delta(CurrIn, initOffset);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -10516,13 +10515,13 @@ void ipackwithoutmask22(__m128i  initOffset, const uint32_t *   _in, __m128i *  
 
 void ipack22(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i     OutReg;
+    __m128i     OutReg, CurrIn, InReg;
 
 
     const  __m128i mask =  _mm_set1_epi32(4194303U); ;
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -10804,11 +10803,11 @@ void ipack22(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
 
 void ipackwithoutmask23(__m128i  initOffset, const uint32_t *   _in, __m128i *   out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i    OutReg;
+    __m128i    OutReg, CurrIn, InReg;
 
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = Delta(CurrIn, initOffset);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = Delta(CurrIn, initOffset);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -11095,13 +11094,13 @@ void ipackwithoutmask23(__m128i  initOffset, const uint32_t *   _in, __m128i *  
 
 void ipack23(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i     OutReg;
+    __m128i     OutReg, CurrIn, InReg;
 
 
     const  __m128i mask =  _mm_set1_epi32(8388607U); ;
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -11388,11 +11387,11 @@ void ipack23(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
 
 void ipackwithoutmask24(__m128i  initOffset, const uint32_t *   _in, __m128i *   out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i    OutReg;
+    __m128i    OutReg, CurrIn, InReg;
 
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = Delta(CurrIn, initOffset);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = Delta(CurrIn, initOffset);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -11676,13 +11675,13 @@ void ipackwithoutmask24(__m128i  initOffset, const uint32_t *   _in, __m128i *  
 
 void ipack24(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i     OutReg;
+    __m128i     OutReg, CurrIn, InReg;
 
 
     const  __m128i mask =  _mm_set1_epi32(16777215U); ;
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -11966,11 +11965,11 @@ void ipack24(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
 
 void ipackwithoutmask25(__m128i  initOffset, const uint32_t *   _in, __m128i *   out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i    OutReg;
+    __m128i    OutReg, CurrIn, InReg;
 
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = Delta(CurrIn, initOffset);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = Delta(CurrIn, initOffset);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -12265,13 +12264,13 @@ void ipackwithoutmask25(__m128i  initOffset, const uint32_t *   _in, __m128i *  
 
 void ipack25(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i     OutReg;
+    __m128i     OutReg, CurrIn, InReg;
 
 
     const  __m128i mask =  _mm_set1_epi32(33554431U); ;
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -12566,11 +12565,11 @@ void ipack25(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
 
 void ipackwithoutmask26(__m128i  initOffset, const uint32_t *   _in, __m128i *   out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i    OutReg;
+    __m128i    OutReg, CurrIn, InReg;
 
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = Delta(CurrIn, initOffset);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = Delta(CurrIn, initOffset);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -12868,13 +12867,13 @@ void ipackwithoutmask26(__m128i  initOffset, const uint32_t *   _in, __m128i *  
 
 void ipack26(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i     OutReg;
+    __m128i     OutReg, CurrIn, InReg;
 
 
     const  __m128i mask =  _mm_set1_epi32(67108863U); ;
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -13172,11 +13171,11 @@ void ipack26(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
 
 void ipackwithoutmask27(__m128i  initOffset, const uint32_t *   _in, __m128i *   out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i    OutReg;
+    __m128i    OutReg, CurrIn, InReg;
 
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = Delta(CurrIn, initOffset);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = Delta(CurrIn, initOffset);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -13479,13 +13478,13 @@ void ipackwithoutmask27(__m128i  initOffset, const uint32_t *   _in, __m128i *  
 
 void ipack27(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i     OutReg;
+    __m128i     OutReg, CurrIn, InReg;
 
 
     const  __m128i mask =  _mm_set1_epi32(134217727U); ;
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -13788,11 +13787,11 @@ void ipack27(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
 
 void ipackwithoutmask28(__m128i  initOffset, const uint32_t *   _in, __m128i *   out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i    OutReg;
+    __m128i    OutReg, CurrIn, InReg;
 
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = Delta(CurrIn, initOffset);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = Delta(CurrIn, initOffset);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -14096,13 +14095,13 @@ void ipackwithoutmask28(__m128i  initOffset, const uint32_t *   _in, __m128i *  
 
 void ipack28(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i     OutReg;
+    __m128i     OutReg, CurrIn, InReg;
 
 
     const  __m128i mask =  _mm_set1_epi32(268435455U); ;
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -14406,11 +14405,11 @@ void ipack28(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
 
 void ipackwithoutmask29(__m128i  initOffset, const uint32_t *   _in, __m128i *   out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i    OutReg;
+    __m128i    OutReg, CurrIn, InReg;
 
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = Delta(CurrIn, initOffset);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = Delta(CurrIn, initOffset);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -14721,13 +14720,13 @@ void ipackwithoutmask29(__m128i  initOffset, const uint32_t *   _in, __m128i *  
 
 void ipack29(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i     OutReg;
+    __m128i     OutReg, CurrIn, InReg;
 
 
     const  __m128i mask =  _mm_set1_epi32(536870911U); ;
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -15038,11 +15037,11 @@ void ipack29(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
 
 void ipackwithoutmask30(__m128i  initOffset, const uint32_t *   _in, __m128i *   out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i    OutReg;
+    __m128i    OutReg, CurrIn, InReg;
 
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = Delta(CurrIn, initOffset);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = Delta(CurrIn, initOffset);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -15356,13 +15355,13 @@ void ipackwithoutmask30(__m128i  initOffset, const uint32_t *   _in, __m128i *  
 
 void ipack30(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i     OutReg;
+    __m128i     OutReg, CurrIn, InReg;
 
 
     const  __m128i mask =  _mm_set1_epi32(1073741823U); ;
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -15676,11 +15675,11 @@ void ipack30(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
 
 void ipackwithoutmask31(__m128i  initOffset, const uint32_t *   _in, __m128i *   out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i    OutReg;
+    __m128i    OutReg, CurrIn, InReg;
 
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = Delta(CurrIn, initOffset);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = Delta(CurrIn, initOffset);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -15999,13 +15998,13 @@ void ipackwithoutmask31(__m128i  initOffset, const uint32_t *   _in, __m128i *  
 
 void ipack31(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
-    __m128i     OutReg;
+    __m128i     OutReg, CurrIn, InReg;
 
 
     const  __m128i mask =  _mm_set1_epi32(2147483647U); ;
 
-    __m128i CurrIn = _mm_loadu_si128(in);
-    __m128i InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
+    CurrIn = _mm_loadu_si128(in);
+    InReg = _mm_and_si128(Delta(CurrIn, initOffset), mask);
     initOffset = CurrIn;
     OutReg = InReg;
     ++in;
@@ -16324,11 +16323,11 @@ void ipack31(__m128i  initOffset, const uint32_t *   _in, __m128i *    out) {
 
 void ipackwithoutmask32(__m128i  initOffset  , const uint32_t *   _in, __m128i *   out) {
     const __m128i       *in = (const __m128i*)(_in);
+    __m128i    OutReg, InReg;
     (void)     initOffset;
-    __m128i    OutReg;
 
 
-    __m128i InReg = _mm_loadu_si128(in);
+    InReg = _mm_loadu_si128(in);
     OutReg = InReg;
     _mm_storeu_si128(out, OutReg);
 
@@ -16557,12 +16556,12 @@ void ipackwithoutmask32(__m128i  initOffset  , const uint32_t *   _in, __m128i *
 
 void ipack32(__m128i   initOffset  , const uint32_t *   _in, __m128i *    out) {
     const __m128i       *in = (const __m128i*)(_in);
+    __m128i     OutReg, InReg;
     (void)      initOffset;
-    __m128i     OutReg;
 
 
 
-    __m128i InReg = _mm_loadu_si128(in);
+    InReg = _mm_loadu_si128(in);
     OutReg = InReg;
     _mm_storeu_si128(out, OutReg);
 
@@ -16802,193 +16801,193 @@ __m128i iunpack1(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) {
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,1);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,2);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,3);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,4);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,5);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,6);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,7);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,8);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,9);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,10);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,11);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,12);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,13);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,14);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,15);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,16);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,17);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,18);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,19);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,20);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,21);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,22);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,23);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,24);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,25);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,26);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,27);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,28);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,29);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,30);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,31);
     OutReg = tmp;
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -17013,194 +17012,194 @@ __m128i iunpack2(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) {
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,2);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,4);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,6);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,8);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,10);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,12);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,14);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,16);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,18);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,20);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,22);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,24);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,26);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,28);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,30);
     OutReg = tmp;
     ++in;    InReg = _mm_loadu_si128(in);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,2);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,4);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,6);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,8);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,10);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,12);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,14);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,16);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,18);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,20);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,22);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,24);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,26);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,28);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,30);
     OutReg = tmp;
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -17225,61 +17224,61 @@ __m128i iunpack3(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) {
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,3);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,6);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,9);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,12);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,15);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,18);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,21);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,24);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,27);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -17288,67 +17287,67 @@ __m128i iunpack3(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) {
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 3-1), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,1);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,4);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,7);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,10);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,13);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,16);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,19);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,22);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,25);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,28);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -17357,67 +17356,67 @@ __m128i iunpack3(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) {
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 3-2), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,2);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,5);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,8);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,11);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,14);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,17);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,20);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,23);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,26);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,29);
     OutReg = tmp;
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -17442,196 +17441,196 @@ __m128i iunpack4(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) {
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,4);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,8);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,12);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,16);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,20);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,24);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,28);
     OutReg = tmp;
     ++in;    InReg = _mm_loadu_si128(in);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,4);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,8);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,12);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,16);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,20);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,24);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,28);
     OutReg = tmp;
     ++in;    InReg = _mm_loadu_si128(in);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,4);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,8);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,12);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,16);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,20);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,24);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,28);
     OutReg = tmp;
     ++in;    InReg = _mm_loadu_si128(in);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,4);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,8);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,12);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,16);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,20);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,24);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,28);
     OutReg = tmp;
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -17656,37 +17655,37 @@ __m128i iunpack5(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) {
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,5);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,10);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,15);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,20);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,25);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -17695,37 +17694,37 @@ __m128i iunpack5(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) {
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 5-3), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,3);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,8);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,13);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,18);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,23);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -17734,43 +17733,43 @@ __m128i iunpack5(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) {
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 5-1), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,1);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,6);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,11);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,16);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,21);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,26);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -17779,37 +17778,37 @@ __m128i iunpack5(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) {
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 5-4), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,4);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,9);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,14);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,19);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,24);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -17818,43 +17817,43 @@ __m128i iunpack5(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) {
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 5-2), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,2);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,7);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,12);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,17);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,22);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,27);
     OutReg = tmp;
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -17879,31 +17878,31 @@ __m128i iunpack6(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) {
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,6);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,12);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,18);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,24);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -17912,31 +17911,31 @@ __m128i iunpack6(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) {
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 6-4), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,4);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,10);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,16);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,22);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -17945,68 +17944,68 @@ __m128i iunpack6(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) {
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 6-2), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,2);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,8);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,14);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,20);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,26);
     OutReg = tmp;
     ++in;    InReg = _mm_loadu_si128(in);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,6);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,12);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,18);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,24);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -18015,31 +18014,31 @@ __m128i iunpack6(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) {
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 6-4), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,4);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,10);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,16);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,22);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -18048,37 +18047,37 @@ __m128i iunpack6(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) {
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 6-2), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,2);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,8);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,14);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,20);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,26);
     OutReg = tmp;
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -18103,25 +18102,25 @@ __m128i iunpack7(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) {
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,7);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,14);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,21);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -18130,31 +18129,31 @@ __m128i iunpack7(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) {
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 7-3), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,3);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,10);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,17);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,24);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -18163,25 +18162,25 @@ __m128i iunpack7(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) {
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 7-6), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,6);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,13);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,20);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -18190,31 +18189,31 @@ __m128i iunpack7(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) {
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 7-2), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,2);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,9);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,16);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,23);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -18223,25 +18222,25 @@ __m128i iunpack7(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) {
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 7-5), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,5);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,12);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,19);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -18250,31 +18249,31 @@ __m128i iunpack7(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) {
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 7-1), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,1);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,8);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,15);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,22);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -18283,31 +18282,31 @@ __m128i iunpack7(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) {
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 7-4), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,4);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,11);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,18);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,25);
     OutReg = tmp;
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -18332,200 +18331,200 @@ __m128i iunpack8(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) {
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,8);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,16);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,24);
     OutReg = tmp;
     ++in;    InReg = _mm_loadu_si128(in);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,8);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,16);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,24);
     OutReg = tmp;
     ++in;    InReg = _mm_loadu_si128(in);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,8);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,16);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,24);
     OutReg = tmp;
     ++in;    InReg = _mm_loadu_si128(in);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,8);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,16);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,24);
     OutReg = tmp;
     ++in;    InReg = _mm_loadu_si128(in);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,8);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,16);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,24);
     OutReg = tmp;
     ++in;    InReg = _mm_loadu_si128(in);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,8);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,16);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,24);
     OutReg = tmp;
     ++in;    InReg = _mm_loadu_si128(in);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,8);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,16);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,24);
     OutReg = tmp;
     ++in;    InReg = _mm_loadu_si128(in);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,8);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,16);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,24);
     OutReg = tmp;
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -18550,19 +18549,19 @@ __m128i iunpack9(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) {
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,9);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,18);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -18571,25 +18570,25 @@ __m128i iunpack9(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) {
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 9-4), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,4);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,13);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,22);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -18598,19 +18597,19 @@ __m128i iunpack9(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) {
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 9-8), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,8);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,17);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -18619,25 +18618,25 @@ __m128i iunpack9(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) {
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 9-3), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,3);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,12);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,21);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -18646,19 +18645,19 @@ __m128i iunpack9(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) {
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 9-7), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,7);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,16);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -18667,25 +18666,25 @@ __m128i iunpack9(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) {
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 9-2), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,2);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,11);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,20);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -18694,19 +18693,19 @@ __m128i iunpack9(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) {
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 9-6), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,6);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,15);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -18715,25 +18714,25 @@ __m128i iunpack9(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) {
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 9-1), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,1);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,10);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,19);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -18742,25 +18741,25 @@ __m128i iunpack9(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) {
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 9-5), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,5);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,14);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,23);
     OutReg = tmp;
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -18785,19 +18784,19 @@ __m128i iunpack10(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,10);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,20);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -18806,19 +18805,19 @@ __m128i iunpack10(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 10-8), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,8);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,18);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -18827,19 +18826,19 @@ __m128i iunpack10(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 10-6), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,6);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,16);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -18848,19 +18847,19 @@ __m128i iunpack10(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 10-4), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,4);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,14);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -18869,44 +18868,44 @@ __m128i iunpack10(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 10-2), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,2);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,12);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,22);
     OutReg = tmp;
     ++in;    InReg = _mm_loadu_si128(in);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,10);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,20);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -18915,19 +18914,19 @@ __m128i iunpack10(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 10-8), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,8);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,18);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -18936,19 +18935,19 @@ __m128i iunpack10(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 10-6), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,6);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,16);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -18957,19 +18956,19 @@ __m128i iunpack10(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 10-4), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,4);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,14);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -18978,25 +18977,25 @@ __m128i iunpack10(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 10-2), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,2);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,12);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,22);
     OutReg = tmp;
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -19021,13 +19020,13 @@ __m128i iunpack11(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,11);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -19036,19 +19035,19 @@ __m128i iunpack11(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 11-1), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,1);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,12);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -19057,19 +19056,19 @@ __m128i iunpack11(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 11-2), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,2);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,13);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -19078,19 +19077,19 @@ __m128i iunpack11(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 11-3), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,3);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,14);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -19099,19 +19098,19 @@ __m128i iunpack11(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 11-4), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,4);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,15);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -19120,19 +19119,19 @@ __m128i iunpack11(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 11-5), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,5);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,16);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -19141,19 +19140,19 @@ __m128i iunpack11(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 11-6), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,6);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,17);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -19162,19 +19161,19 @@ __m128i iunpack11(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 11-7), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,7);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,18);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -19183,19 +19182,19 @@ __m128i iunpack11(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 11-8), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,8);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,19);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -19204,19 +19203,19 @@ __m128i iunpack11(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 11-9), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,9);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,20);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -19225,19 +19224,19 @@ __m128i iunpack11(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 11-10), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,10);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,21);
     OutReg = tmp;
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -19262,13 +19261,13 @@ __m128i iunpack12(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,12);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -19277,19 +19276,19 @@ __m128i iunpack12(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 12-4), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,4);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,16);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -19298,32 +19297,32 @@ __m128i iunpack12(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 12-8), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,8);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,20);
     OutReg = tmp;
     ++in;    InReg = _mm_loadu_si128(in);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,12);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -19332,19 +19331,19 @@ __m128i iunpack12(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 12-4), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,4);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,16);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -19353,32 +19352,32 @@ __m128i iunpack12(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 12-8), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,8);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,20);
     OutReg = tmp;
     ++in;    InReg = _mm_loadu_si128(in);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,12);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -19387,19 +19386,19 @@ __m128i iunpack12(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 12-4), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,4);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,16);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -19408,32 +19407,32 @@ __m128i iunpack12(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 12-8), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,8);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,20);
     OutReg = tmp;
     ++in;    InReg = _mm_loadu_si128(in);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,12);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -19442,19 +19441,19 @@ __m128i iunpack12(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 12-4), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,4);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,16);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -19463,19 +19462,19 @@ __m128i iunpack12(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 12-8), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,8);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,20);
     OutReg = tmp;
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -19500,13 +19499,13 @@ __m128i iunpack13(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,13);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -19515,13 +19514,13 @@ __m128i iunpack13(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 13-7), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,7);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -19530,19 +19529,19 @@ __m128i iunpack13(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 13-1), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,1);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,14);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -19551,13 +19550,13 @@ __m128i iunpack13(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 13-8), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,8);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -19566,19 +19565,19 @@ __m128i iunpack13(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 13-2), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,2);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,15);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -19587,13 +19586,13 @@ __m128i iunpack13(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 13-9), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,9);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -19602,19 +19601,19 @@ __m128i iunpack13(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 13-3), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,3);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,16);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -19623,13 +19622,13 @@ __m128i iunpack13(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 13-10), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,10);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -19638,19 +19637,19 @@ __m128i iunpack13(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 13-4), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,4);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,17);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -19659,13 +19658,13 @@ __m128i iunpack13(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 13-11), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,11);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -19674,19 +19673,19 @@ __m128i iunpack13(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 13-5), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,5);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,18);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -19695,13 +19694,13 @@ __m128i iunpack13(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 13-12), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,12);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -19710,19 +19709,19 @@ __m128i iunpack13(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 13-6), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,6);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,19);
     OutReg = tmp;
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -19747,13 +19746,13 @@ __m128i iunpack14(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,14);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -19762,13 +19761,13 @@ __m128i iunpack14(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 14-10), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,10);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -19777,13 +19776,13 @@ __m128i iunpack14(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 14-6), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,6);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -19792,19 +19791,19 @@ __m128i iunpack14(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 14-2), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,2);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,16);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -19813,13 +19812,13 @@ __m128i iunpack14(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 14-12), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,12);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -19828,13 +19827,13 @@ __m128i iunpack14(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 14-8), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,8);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -19843,32 +19842,32 @@ __m128i iunpack14(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 14-4), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,4);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,18);
     OutReg = tmp;
     ++in;    InReg = _mm_loadu_si128(in);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,14);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -19877,13 +19876,13 @@ __m128i iunpack14(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 14-10), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,10);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -19892,13 +19891,13 @@ __m128i iunpack14(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 14-6), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,6);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -19907,19 +19906,19 @@ __m128i iunpack14(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 14-2), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,2);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,16);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -19928,13 +19927,13 @@ __m128i iunpack14(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 14-12), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,12);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -19943,13 +19942,13 @@ __m128i iunpack14(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 14-8), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,8);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -19958,19 +19957,19 @@ __m128i iunpack14(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 14-4), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,4);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,18);
     OutReg = tmp;
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -19995,13 +19994,13 @@ __m128i iunpack15(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,15);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -20010,13 +20009,13 @@ __m128i iunpack15(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 15-13), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,13);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -20025,13 +20024,13 @@ __m128i iunpack15(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 15-11), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,11);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -20040,13 +20039,13 @@ __m128i iunpack15(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 15-9), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,9);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -20055,13 +20054,13 @@ __m128i iunpack15(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 15-7), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,7);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -20070,13 +20069,13 @@ __m128i iunpack15(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 15-5), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,5);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -20085,13 +20084,13 @@ __m128i iunpack15(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 15-3), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,3);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -20100,19 +20099,19 @@ __m128i iunpack15(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 15-1), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,1);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,16);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -20121,13 +20120,13 @@ __m128i iunpack15(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 15-14), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,14);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -20136,13 +20135,13 @@ __m128i iunpack15(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 15-12), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,12);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -20151,13 +20150,13 @@ __m128i iunpack15(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 15-10), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,10);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -20166,13 +20165,13 @@ __m128i iunpack15(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 15-8), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,8);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -20181,13 +20180,13 @@ __m128i iunpack15(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 15-6), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,6);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -20196,13 +20195,13 @@ __m128i iunpack15(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 15-4), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,4);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -20211,19 +20210,19 @@ __m128i iunpack15(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 15-2), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,2);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,17);
     OutReg = tmp;
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -20248,208 +20247,208 @@ __m128i iunpack16(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,16);
     OutReg = tmp;
     ++in;    InReg = _mm_loadu_si128(in);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,16);
     OutReg = tmp;
     ++in;    InReg = _mm_loadu_si128(in);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,16);
     OutReg = tmp;
     ++in;    InReg = _mm_loadu_si128(in);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,16);
     OutReg = tmp;
     ++in;    InReg = _mm_loadu_si128(in);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,16);
     OutReg = tmp;
     ++in;    InReg = _mm_loadu_si128(in);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,16);
     OutReg = tmp;
     ++in;    InReg = _mm_loadu_si128(in);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,16);
     OutReg = tmp;
     ++in;    InReg = _mm_loadu_si128(in);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,16);
     OutReg = tmp;
     ++in;    InReg = _mm_loadu_si128(in);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,16);
     OutReg = tmp;
     ++in;    InReg = _mm_loadu_si128(in);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,16);
     OutReg = tmp;
     ++in;    InReg = _mm_loadu_si128(in);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,16);
     OutReg = tmp;
     ++in;    InReg = _mm_loadu_si128(in);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,16);
     OutReg = tmp;
     ++in;    InReg = _mm_loadu_si128(in);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,16);
     OutReg = tmp;
     ++in;    InReg = _mm_loadu_si128(in);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,16);
     OutReg = tmp;
     ++in;    InReg = _mm_loadu_si128(in);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,16);
     OutReg = tmp;
     ++in;    InReg = _mm_loadu_si128(in);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,16);
     OutReg = tmp;
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -20474,7 +20473,7 @@ __m128i iunpack17(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -20483,13 +20482,13 @@ __m128i iunpack17(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 17-2), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,2);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -20498,13 +20497,13 @@ __m128i iunpack17(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 17-4), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,4);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -20513,13 +20512,13 @@ __m128i iunpack17(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 17-6), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,6);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -20528,13 +20527,13 @@ __m128i iunpack17(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 17-8), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,8);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -20543,13 +20542,13 @@ __m128i iunpack17(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 17-10), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,10);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -20558,13 +20557,13 @@ __m128i iunpack17(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 17-12), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,12);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -20573,13 +20572,13 @@ __m128i iunpack17(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 17-14), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,14);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -20588,7 +20587,7 @@ __m128i iunpack17(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 17-16), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -20597,13 +20596,13 @@ __m128i iunpack17(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 17-1), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,1);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -20612,13 +20611,13 @@ __m128i iunpack17(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 17-3), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,3);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -20627,13 +20626,13 @@ __m128i iunpack17(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 17-5), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,5);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -20642,13 +20641,13 @@ __m128i iunpack17(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 17-7), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,7);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -20657,13 +20656,13 @@ __m128i iunpack17(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 17-9), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,9);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -20672,13 +20671,13 @@ __m128i iunpack17(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 17-11), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,11);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -20687,13 +20686,13 @@ __m128i iunpack17(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 17-13), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,13);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -20702,13 +20701,13 @@ __m128i iunpack17(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 17-15), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,15);
     OutReg = tmp;
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -20733,7 +20732,7 @@ __m128i iunpack18(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -20742,13 +20741,13 @@ __m128i iunpack18(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 18-4), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,4);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -20757,13 +20756,13 @@ __m128i iunpack18(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 18-8), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,8);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -20772,13 +20771,13 @@ __m128i iunpack18(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 18-12), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,12);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -20787,7 +20786,7 @@ __m128i iunpack18(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 18-16), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -20796,13 +20795,13 @@ __m128i iunpack18(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 18-2), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,2);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -20811,13 +20810,13 @@ __m128i iunpack18(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 18-6), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,6);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -20826,13 +20825,13 @@ __m128i iunpack18(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 18-10), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,10);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -20841,20 +20840,20 @@ __m128i iunpack18(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 18-14), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,14);
     OutReg = tmp;
     ++in;    InReg = _mm_loadu_si128(in);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -20863,13 +20862,13 @@ __m128i iunpack18(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 18-4), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,4);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -20878,13 +20877,13 @@ __m128i iunpack18(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 18-8), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,8);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -20893,13 +20892,13 @@ __m128i iunpack18(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 18-12), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,12);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -20908,7 +20907,7 @@ __m128i iunpack18(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 18-16), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -20917,13 +20916,13 @@ __m128i iunpack18(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 18-2), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,2);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -20932,13 +20931,13 @@ __m128i iunpack18(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 18-6), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,6);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -20947,13 +20946,13 @@ __m128i iunpack18(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 18-10), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,10);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -20962,13 +20961,13 @@ __m128i iunpack18(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 18-14), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,14);
     OutReg = tmp;
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -20993,7 +20992,7 @@ __m128i iunpack19(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21002,13 +21001,13 @@ __m128i iunpack19(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 19-6), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,6);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21017,13 +21016,13 @@ __m128i iunpack19(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 19-12), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,12);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21032,7 +21031,7 @@ __m128i iunpack19(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 19-18), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21041,13 +21040,13 @@ __m128i iunpack19(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 19-5), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,5);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21056,13 +21055,13 @@ __m128i iunpack19(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 19-11), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,11);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21071,7 +21070,7 @@ __m128i iunpack19(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 19-17), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21080,13 +21079,13 @@ __m128i iunpack19(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 19-4), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,4);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21095,13 +21094,13 @@ __m128i iunpack19(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 19-10), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,10);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21110,7 +21109,7 @@ __m128i iunpack19(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 19-16), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21119,13 +21118,13 @@ __m128i iunpack19(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 19-3), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,3);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21134,13 +21133,13 @@ __m128i iunpack19(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 19-9), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,9);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21149,7 +21148,7 @@ __m128i iunpack19(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 19-15), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21158,13 +21157,13 @@ __m128i iunpack19(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 19-2), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,2);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21173,13 +21172,13 @@ __m128i iunpack19(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 19-8), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,8);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21188,7 +21187,7 @@ __m128i iunpack19(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 19-14), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21197,13 +21196,13 @@ __m128i iunpack19(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 19-1), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,1);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21212,13 +21211,13 @@ __m128i iunpack19(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 19-7), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,7);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21227,13 +21226,13 @@ __m128i iunpack19(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 19-13), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,13);
     OutReg = tmp;
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21258,7 +21257,7 @@ __m128i iunpack20(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21267,13 +21266,13 @@ __m128i iunpack20(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 20-8), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,8);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21282,7 +21281,7 @@ __m128i iunpack20(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 20-16), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21291,13 +21290,13 @@ __m128i iunpack20(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 20-4), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,4);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21306,20 +21305,20 @@ __m128i iunpack20(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 20-12), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,12);
     OutReg = tmp;
     ++in;    InReg = _mm_loadu_si128(in);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21328,13 +21327,13 @@ __m128i iunpack20(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 20-8), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,8);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21343,7 +21342,7 @@ __m128i iunpack20(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 20-16), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21352,13 +21351,13 @@ __m128i iunpack20(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 20-4), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,4);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21367,20 +21366,20 @@ __m128i iunpack20(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 20-12), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,12);
     OutReg = tmp;
     ++in;    InReg = _mm_loadu_si128(in);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21389,13 +21388,13 @@ __m128i iunpack20(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 20-8), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,8);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21404,7 +21403,7 @@ __m128i iunpack20(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 20-16), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21413,13 +21412,13 @@ __m128i iunpack20(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 20-4), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,4);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21428,20 +21427,20 @@ __m128i iunpack20(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 20-12), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,12);
     OutReg = tmp;
     ++in;    InReg = _mm_loadu_si128(in);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21450,13 +21449,13 @@ __m128i iunpack20(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 20-8), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,8);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21465,7 +21464,7 @@ __m128i iunpack20(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 20-16), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21474,13 +21473,13 @@ __m128i iunpack20(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 20-4), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,4);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21489,13 +21488,13 @@ __m128i iunpack20(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 20-12), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,12);
     OutReg = tmp;
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21520,7 +21519,7 @@ __m128i iunpack21(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21529,13 +21528,13 @@ __m128i iunpack21(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 21-10), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,10);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21544,7 +21543,7 @@ __m128i iunpack21(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 21-20), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21553,13 +21552,13 @@ __m128i iunpack21(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 21-9), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,9);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21568,7 +21567,7 @@ __m128i iunpack21(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 21-19), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21577,13 +21576,13 @@ __m128i iunpack21(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 21-8), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,8);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21592,7 +21591,7 @@ __m128i iunpack21(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 21-18), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21601,13 +21600,13 @@ __m128i iunpack21(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 21-7), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,7);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21616,7 +21615,7 @@ __m128i iunpack21(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 21-17), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21625,13 +21624,13 @@ __m128i iunpack21(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 21-6), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,6);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21640,7 +21639,7 @@ __m128i iunpack21(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 21-16), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21649,13 +21648,13 @@ __m128i iunpack21(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 21-5), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,5);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21664,7 +21663,7 @@ __m128i iunpack21(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 21-15), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21673,13 +21672,13 @@ __m128i iunpack21(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 21-4), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,4);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21688,7 +21687,7 @@ __m128i iunpack21(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 21-14), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21697,13 +21696,13 @@ __m128i iunpack21(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 21-3), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,3);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21712,7 +21711,7 @@ __m128i iunpack21(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 21-13), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21721,13 +21720,13 @@ __m128i iunpack21(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 21-2), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,2);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21736,7 +21735,7 @@ __m128i iunpack21(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 21-12), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21745,13 +21744,13 @@ __m128i iunpack21(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 21-1), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,1);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21760,13 +21759,13 @@ __m128i iunpack21(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 21-11), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,11);
     OutReg = tmp;
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21791,7 +21790,7 @@ __m128i iunpack22(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21800,7 +21799,7 @@ __m128i iunpack22(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 22-12), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21809,13 +21808,13 @@ __m128i iunpack22(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 22-2), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,2);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21824,7 +21823,7 @@ __m128i iunpack22(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 22-14), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21833,13 +21832,13 @@ __m128i iunpack22(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 22-4), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,4);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21848,7 +21847,7 @@ __m128i iunpack22(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 22-16), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21857,13 +21856,13 @@ __m128i iunpack22(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 22-6), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,6);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21872,7 +21871,7 @@ __m128i iunpack22(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 22-18), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21881,13 +21880,13 @@ __m128i iunpack22(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 22-8), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,8);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21896,7 +21895,7 @@ __m128i iunpack22(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 22-20), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21905,20 +21904,20 @@ __m128i iunpack22(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 22-10), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,10);
     OutReg = tmp;
     ++in;    InReg = _mm_loadu_si128(in);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21927,7 +21926,7 @@ __m128i iunpack22(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 22-12), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21936,13 +21935,13 @@ __m128i iunpack22(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 22-2), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,2);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21951,7 +21950,7 @@ __m128i iunpack22(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 22-14), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21960,13 +21959,13 @@ __m128i iunpack22(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 22-4), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,4);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21975,7 +21974,7 @@ __m128i iunpack22(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 22-16), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21984,13 +21983,13 @@ __m128i iunpack22(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 22-6), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,6);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -21999,7 +21998,7 @@ __m128i iunpack22(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 22-18), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22008,13 +22007,13 @@ __m128i iunpack22(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 22-8), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,8);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22023,7 +22022,7 @@ __m128i iunpack22(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 22-20), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22032,13 +22031,13 @@ __m128i iunpack22(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 22-10), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,10);
     OutReg = tmp;
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22063,7 +22062,7 @@ __m128i iunpack23(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22072,7 +22071,7 @@ __m128i iunpack23(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 23-14), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22081,13 +22080,13 @@ __m128i iunpack23(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 23-5), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,5);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22096,7 +22095,7 @@ __m128i iunpack23(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 23-19), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22105,7 +22104,7 @@ __m128i iunpack23(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 23-10), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22114,13 +22113,13 @@ __m128i iunpack23(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 23-1), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,1);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22129,7 +22128,7 @@ __m128i iunpack23(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 23-15), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22138,13 +22137,13 @@ __m128i iunpack23(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 23-6), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,6);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22153,7 +22152,7 @@ __m128i iunpack23(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 23-20), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22162,7 +22161,7 @@ __m128i iunpack23(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 23-11), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22171,13 +22170,13 @@ __m128i iunpack23(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 23-2), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,2);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22186,7 +22185,7 @@ __m128i iunpack23(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 23-16), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22195,13 +22194,13 @@ __m128i iunpack23(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 23-7), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,7);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22210,7 +22209,7 @@ __m128i iunpack23(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 23-21), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22219,7 +22218,7 @@ __m128i iunpack23(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 23-12), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22228,13 +22227,13 @@ __m128i iunpack23(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 23-3), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,3);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22243,7 +22242,7 @@ __m128i iunpack23(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 23-17), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22252,13 +22251,13 @@ __m128i iunpack23(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 23-8), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,8);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22267,7 +22266,7 @@ __m128i iunpack23(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 23-22), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22276,7 +22275,7 @@ __m128i iunpack23(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 23-13), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22285,13 +22284,13 @@ __m128i iunpack23(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 23-4), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,4);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22300,7 +22299,7 @@ __m128i iunpack23(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 23-18), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22309,13 +22308,13 @@ __m128i iunpack23(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 23-9), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,9);
     OutReg = tmp;
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22340,7 +22339,7 @@ __m128i iunpack24(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22349,7 +22348,7 @@ __m128i iunpack24(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 24-16), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22358,20 +22357,20 @@ __m128i iunpack24(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 24-8), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,8);
     OutReg = tmp;
     ++in;    InReg = _mm_loadu_si128(in);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22380,7 +22379,7 @@ __m128i iunpack24(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 24-16), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22389,20 +22388,20 @@ __m128i iunpack24(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 24-8), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,8);
     OutReg = tmp;
     ++in;    InReg = _mm_loadu_si128(in);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22411,7 +22410,7 @@ __m128i iunpack24(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 24-16), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22420,20 +22419,20 @@ __m128i iunpack24(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 24-8), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,8);
     OutReg = tmp;
     ++in;    InReg = _mm_loadu_si128(in);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22442,7 +22441,7 @@ __m128i iunpack24(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 24-16), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22451,20 +22450,20 @@ __m128i iunpack24(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 24-8), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,8);
     OutReg = tmp;
     ++in;    InReg = _mm_loadu_si128(in);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22473,7 +22472,7 @@ __m128i iunpack24(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 24-16), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22482,20 +22481,20 @@ __m128i iunpack24(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 24-8), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,8);
     OutReg = tmp;
     ++in;    InReg = _mm_loadu_si128(in);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22504,7 +22503,7 @@ __m128i iunpack24(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 24-16), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22513,20 +22512,20 @@ __m128i iunpack24(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 24-8), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,8);
     OutReg = tmp;
     ++in;    InReg = _mm_loadu_si128(in);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22535,7 +22534,7 @@ __m128i iunpack24(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 24-16), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22544,20 +22543,20 @@ __m128i iunpack24(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 24-8), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,8);
     OutReg = tmp;
     ++in;    InReg = _mm_loadu_si128(in);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22566,7 +22565,7 @@ __m128i iunpack24(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 24-16), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22575,13 +22574,13 @@ __m128i iunpack24(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 24-8), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,8);
     OutReg = tmp;
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22606,7 +22605,7 @@ __m128i iunpack25(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22615,7 +22614,7 @@ __m128i iunpack25(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 25-18), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22624,7 +22623,7 @@ __m128i iunpack25(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 25-11), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22633,13 +22632,13 @@ __m128i iunpack25(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 25-4), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,4);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22648,7 +22647,7 @@ __m128i iunpack25(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 25-22), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22657,7 +22656,7 @@ __m128i iunpack25(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 25-15), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22666,7 +22665,7 @@ __m128i iunpack25(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 25-8), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22675,13 +22674,13 @@ __m128i iunpack25(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 25-1), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,1);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22690,7 +22689,7 @@ __m128i iunpack25(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 25-19), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22699,7 +22698,7 @@ __m128i iunpack25(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 25-12), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22708,13 +22707,13 @@ __m128i iunpack25(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 25-5), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,5);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22723,7 +22722,7 @@ __m128i iunpack25(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 25-23), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22732,7 +22731,7 @@ __m128i iunpack25(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 25-16), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22741,7 +22740,7 @@ __m128i iunpack25(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 25-9), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22750,13 +22749,13 @@ __m128i iunpack25(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 25-2), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,2);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22765,7 +22764,7 @@ __m128i iunpack25(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 25-20), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22774,7 +22773,7 @@ __m128i iunpack25(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 25-13), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22783,13 +22782,13 @@ __m128i iunpack25(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 25-6), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,6);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22798,7 +22797,7 @@ __m128i iunpack25(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 25-24), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22807,7 +22806,7 @@ __m128i iunpack25(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 25-17), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22816,7 +22815,7 @@ __m128i iunpack25(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 25-10), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22825,13 +22824,13 @@ __m128i iunpack25(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 25-3), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,3);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22840,7 +22839,7 @@ __m128i iunpack25(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 25-21), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22849,7 +22848,7 @@ __m128i iunpack25(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 25-14), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22858,13 +22857,13 @@ __m128i iunpack25(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 25-7), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,7);
     OutReg = tmp;
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22889,7 +22888,7 @@ __m128i iunpack26(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22898,7 +22897,7 @@ __m128i iunpack26(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 26-20), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22907,7 +22906,7 @@ __m128i iunpack26(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 26-14), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22916,7 +22915,7 @@ __m128i iunpack26(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 26-8), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22925,13 +22924,13 @@ __m128i iunpack26(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 26-2), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,2);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22940,7 +22939,7 @@ __m128i iunpack26(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 26-22), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22949,7 +22948,7 @@ __m128i iunpack26(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 26-16), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22958,7 +22957,7 @@ __m128i iunpack26(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 26-10), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22967,13 +22966,13 @@ __m128i iunpack26(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 26-4), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,4);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22982,7 +22981,7 @@ __m128i iunpack26(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 26-24), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -22991,7 +22990,7 @@ __m128i iunpack26(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 26-18), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23000,7 +22999,7 @@ __m128i iunpack26(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 26-12), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23009,20 +23008,20 @@ __m128i iunpack26(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 26-6), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,6);
     OutReg = tmp;
     ++in;    InReg = _mm_loadu_si128(in);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23031,7 +23030,7 @@ __m128i iunpack26(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 26-20), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23040,7 +23039,7 @@ __m128i iunpack26(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 26-14), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23049,7 +23048,7 @@ __m128i iunpack26(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 26-8), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23058,13 +23057,13 @@ __m128i iunpack26(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 26-2), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,2);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23073,7 +23072,7 @@ __m128i iunpack26(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 26-22), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23082,7 +23081,7 @@ __m128i iunpack26(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 26-16), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23091,7 +23090,7 @@ __m128i iunpack26(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 26-10), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23100,13 +23099,13 @@ __m128i iunpack26(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 26-4), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,4);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23115,7 +23114,7 @@ __m128i iunpack26(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 26-24), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23124,7 +23123,7 @@ __m128i iunpack26(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 26-18), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23133,7 +23132,7 @@ __m128i iunpack26(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 26-12), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23142,13 +23141,13 @@ __m128i iunpack26(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 26-6), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,6);
     OutReg = tmp;
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23173,7 +23172,7 @@ __m128i iunpack27(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23182,7 +23181,7 @@ __m128i iunpack27(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 27-22), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23191,7 +23190,7 @@ __m128i iunpack27(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 27-17), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23200,7 +23199,7 @@ __m128i iunpack27(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 27-12), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23209,7 +23208,7 @@ __m128i iunpack27(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 27-7), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23218,13 +23217,13 @@ __m128i iunpack27(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 27-2), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,2);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23233,7 +23232,7 @@ __m128i iunpack27(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 27-24), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23242,7 +23241,7 @@ __m128i iunpack27(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 27-19), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23251,7 +23250,7 @@ __m128i iunpack27(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 27-14), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23260,7 +23259,7 @@ __m128i iunpack27(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 27-9), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23269,13 +23268,13 @@ __m128i iunpack27(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 27-4), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,4);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23284,7 +23283,7 @@ __m128i iunpack27(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 27-26), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23293,7 +23292,7 @@ __m128i iunpack27(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 27-21), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23302,7 +23301,7 @@ __m128i iunpack27(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 27-16), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23311,7 +23310,7 @@ __m128i iunpack27(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 27-11), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23320,7 +23319,7 @@ __m128i iunpack27(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 27-6), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23329,13 +23328,13 @@ __m128i iunpack27(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 27-1), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,1);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23344,7 +23343,7 @@ __m128i iunpack27(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 27-23), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23353,7 +23352,7 @@ __m128i iunpack27(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 27-18), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23362,7 +23361,7 @@ __m128i iunpack27(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 27-13), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23371,7 +23370,7 @@ __m128i iunpack27(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 27-8), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23380,13 +23379,13 @@ __m128i iunpack27(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 27-3), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,3);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23395,7 +23394,7 @@ __m128i iunpack27(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 27-25), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23404,7 +23403,7 @@ __m128i iunpack27(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 27-20), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23413,7 +23412,7 @@ __m128i iunpack27(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 27-15), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23422,7 +23421,7 @@ __m128i iunpack27(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 27-10), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23431,13 +23430,13 @@ __m128i iunpack27(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 27-5), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,5);
     OutReg = tmp;
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23462,7 +23461,7 @@ __m128i iunpack28(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23471,7 +23470,7 @@ __m128i iunpack28(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 28-24), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23480,7 +23479,7 @@ __m128i iunpack28(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 28-20), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23489,7 +23488,7 @@ __m128i iunpack28(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 28-16), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23498,7 +23497,7 @@ __m128i iunpack28(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 28-12), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23507,7 +23506,7 @@ __m128i iunpack28(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 28-8), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23516,20 +23515,20 @@ __m128i iunpack28(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 28-4), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,4);
     OutReg = tmp;
     ++in;    InReg = _mm_loadu_si128(in);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23538,7 +23537,7 @@ __m128i iunpack28(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 28-24), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23547,7 +23546,7 @@ __m128i iunpack28(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 28-20), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23556,7 +23555,7 @@ __m128i iunpack28(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 28-16), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23565,7 +23564,7 @@ __m128i iunpack28(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 28-12), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23574,7 +23573,7 @@ __m128i iunpack28(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 28-8), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23583,20 +23582,20 @@ __m128i iunpack28(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 28-4), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,4);
     OutReg = tmp;
     ++in;    InReg = _mm_loadu_si128(in);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23605,7 +23604,7 @@ __m128i iunpack28(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 28-24), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23614,7 +23613,7 @@ __m128i iunpack28(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 28-20), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23623,7 +23622,7 @@ __m128i iunpack28(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 28-16), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23632,7 +23631,7 @@ __m128i iunpack28(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 28-12), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23641,7 +23640,7 @@ __m128i iunpack28(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 28-8), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23650,20 +23649,20 @@ __m128i iunpack28(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 28-4), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,4);
     OutReg = tmp;
     ++in;    InReg = _mm_loadu_si128(in);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23672,7 +23671,7 @@ __m128i iunpack28(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 28-24), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23681,7 +23680,7 @@ __m128i iunpack28(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 28-20), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23690,7 +23689,7 @@ __m128i iunpack28(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 28-16), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23699,7 +23698,7 @@ __m128i iunpack28(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 28-12), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23708,7 +23707,7 @@ __m128i iunpack28(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 28-8), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23717,13 +23716,13 @@ __m128i iunpack28(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 28-4), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,4);
     OutReg = tmp;
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23748,7 +23747,7 @@ __m128i iunpack29(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23757,7 +23756,7 @@ __m128i iunpack29(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 29-26), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23766,7 +23765,7 @@ __m128i iunpack29(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 29-23), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23775,7 +23774,7 @@ __m128i iunpack29(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 29-20), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23784,7 +23783,7 @@ __m128i iunpack29(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 29-17), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23793,7 +23792,7 @@ __m128i iunpack29(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 29-14), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23802,7 +23801,7 @@ __m128i iunpack29(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 29-11), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23811,7 +23810,7 @@ __m128i iunpack29(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 29-8), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23820,7 +23819,7 @@ __m128i iunpack29(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 29-5), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23829,13 +23828,13 @@ __m128i iunpack29(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 29-2), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,2);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23844,7 +23843,7 @@ __m128i iunpack29(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 29-28), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23853,7 +23852,7 @@ __m128i iunpack29(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 29-25), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23862,7 +23861,7 @@ __m128i iunpack29(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 29-22), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23871,7 +23870,7 @@ __m128i iunpack29(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 29-19), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23880,7 +23879,7 @@ __m128i iunpack29(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 29-16), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23889,7 +23888,7 @@ __m128i iunpack29(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 29-13), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23898,7 +23897,7 @@ __m128i iunpack29(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 29-10), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23907,7 +23906,7 @@ __m128i iunpack29(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 29-7), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23916,7 +23915,7 @@ __m128i iunpack29(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 29-4), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23925,13 +23924,13 @@ __m128i iunpack29(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 29-1), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,1);
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23940,7 +23939,7 @@ __m128i iunpack29(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 29-27), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23949,7 +23948,7 @@ __m128i iunpack29(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 29-24), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23958,7 +23957,7 @@ __m128i iunpack29(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 29-21), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23967,7 +23966,7 @@ __m128i iunpack29(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 29-18), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23976,7 +23975,7 @@ __m128i iunpack29(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 29-15), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23985,7 +23984,7 @@ __m128i iunpack29(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 29-12), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -23994,7 +23993,7 @@ __m128i iunpack29(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 29-9), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -24003,7 +24002,7 @@ __m128i iunpack29(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 29-6), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -24012,13 +24011,13 @@ __m128i iunpack29(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 29-3), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,3);
     OutReg = tmp;
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -24043,7 +24042,7 @@ __m128i iunpack30(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -24052,7 +24051,7 @@ __m128i iunpack30(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 30-28), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -24061,7 +24060,7 @@ __m128i iunpack30(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 30-26), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -24070,7 +24069,7 @@ __m128i iunpack30(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 30-24), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -24079,7 +24078,7 @@ __m128i iunpack30(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 30-22), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -24088,7 +24087,7 @@ __m128i iunpack30(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 30-20), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -24097,7 +24096,7 @@ __m128i iunpack30(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 30-18), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -24106,7 +24105,7 @@ __m128i iunpack30(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 30-16), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -24115,7 +24114,7 @@ __m128i iunpack30(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 30-14), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -24124,7 +24123,7 @@ __m128i iunpack30(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 30-12), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -24133,7 +24132,7 @@ __m128i iunpack30(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 30-10), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -24142,7 +24141,7 @@ __m128i iunpack30(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 30-8), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -24151,7 +24150,7 @@ __m128i iunpack30(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 30-6), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -24160,7 +24159,7 @@ __m128i iunpack30(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 30-4), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -24169,20 +24168,20 @@ __m128i iunpack30(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 30-2), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,2);
     OutReg = tmp;
     ++in;    InReg = _mm_loadu_si128(in);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -24191,7 +24190,7 @@ __m128i iunpack30(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 30-28), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -24200,7 +24199,7 @@ __m128i iunpack30(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 30-26), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -24209,7 +24208,7 @@ __m128i iunpack30(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 30-24), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -24218,7 +24217,7 @@ __m128i iunpack30(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 30-22), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -24227,7 +24226,7 @@ __m128i iunpack30(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 30-20), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -24236,7 +24235,7 @@ __m128i iunpack30(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 30-18), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -24245,7 +24244,7 @@ __m128i iunpack30(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 30-16), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -24254,7 +24253,7 @@ __m128i iunpack30(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 30-14), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -24263,7 +24262,7 @@ __m128i iunpack30(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 30-12), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -24272,7 +24271,7 @@ __m128i iunpack30(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 30-10), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -24281,7 +24280,7 @@ __m128i iunpack30(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 30-8), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -24290,7 +24289,7 @@ __m128i iunpack30(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 30-6), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -24299,7 +24298,7 @@ __m128i iunpack30(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 30-4), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -24308,13 +24307,13 @@ __m128i iunpack30(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 30-2), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,2);
     OutReg = tmp;
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -24339,7 +24338,7 @@ __m128i iunpack31(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
 
     tmp = InReg;
     OutReg = _mm_and_si128(tmp, mask);
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -24348,7 +24347,7 @@ __m128i iunpack31(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 31-30), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -24357,7 +24356,7 @@ __m128i iunpack31(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 31-29), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -24366,7 +24365,7 @@ __m128i iunpack31(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 31-28), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -24375,7 +24374,7 @@ __m128i iunpack31(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 31-27), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -24384,7 +24383,7 @@ __m128i iunpack31(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 31-26), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -24393,7 +24392,7 @@ __m128i iunpack31(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 31-25), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -24402,7 +24401,7 @@ __m128i iunpack31(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 31-24), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -24411,7 +24410,7 @@ __m128i iunpack31(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 31-23), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -24420,7 +24419,7 @@ __m128i iunpack31(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 31-22), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -24429,7 +24428,7 @@ __m128i iunpack31(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 31-21), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -24438,7 +24437,7 @@ __m128i iunpack31(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 31-20), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -24447,7 +24446,7 @@ __m128i iunpack31(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 31-19), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -24456,7 +24455,7 @@ __m128i iunpack31(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 31-18), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -24465,7 +24464,7 @@ __m128i iunpack31(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 31-17), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -24474,7 +24473,7 @@ __m128i iunpack31(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 31-16), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -24483,7 +24482,7 @@ __m128i iunpack31(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 31-15), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -24492,7 +24491,7 @@ __m128i iunpack31(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 31-14), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -24501,7 +24500,7 @@ __m128i iunpack31(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 31-13), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -24510,7 +24509,7 @@ __m128i iunpack31(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 31-12), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -24519,7 +24518,7 @@ __m128i iunpack31(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 31-11), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -24528,7 +24527,7 @@ __m128i iunpack31(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 31-10), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -24537,7 +24536,7 @@ __m128i iunpack31(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 31-9), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -24546,7 +24545,7 @@ __m128i iunpack31(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 31-8), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -24555,7 +24554,7 @@ __m128i iunpack31(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 31-7), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -24564,7 +24563,7 @@ __m128i iunpack31(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 31-6), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -24573,7 +24572,7 @@ __m128i iunpack31(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 31-5), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -24582,7 +24581,7 @@ __m128i iunpack31(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 31-4), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -24591,7 +24590,7 @@ __m128i iunpack31(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 31-3), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -24600,7 +24599,7 @@ __m128i iunpack31(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 31-2), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -24609,13 +24608,13 @@ __m128i iunpack31(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
     ++in;    InReg = _mm_loadu_si128(in);
     OutReg = _mm_or_si128(OutReg, _mm_and_si128(_mm_slli_epi32(InReg, 31-1), mask));
 
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
     tmp = _mm_srli_epi32(InReg,1);
     OutReg = tmp;
-    OutReg = PrefixSum(OutReg, initOffset);
+    PrefixSum(OutReg, OutReg, initOffset);
     initOffset = OutReg;
     _mm_storeu_si128(out++, OutReg);
 
@@ -24628,10 +24627,11 @@ __m128i iunpack31(__m128i  initOffset, const  __m128i*   in, uint32_t *   _out) 
 
 
 __m128i iunpack32(__m128i  initOffset, const  __m128i*   in, uint32_t *    _out) {
-	(void)  initOffset;
 	__m128i * mout = (__m128i *)(_out);
 	__m128i invec;
-	for(size_t k = 0; k < 128/4; ++k) {
+	size_t k;
+	(void)  initOffset;
+	for(k = 0; k < 128/4; ++k) {
 		invec =  _mm_loadu_si128(in++);
 	    _mm_storeu_si128(mout++, invec);
 	}

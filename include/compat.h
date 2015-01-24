@@ -1,3 +1,8 @@
+/**
+ * This code is released under a BSD License.
+ */
+#ifndef SIMDBITCOMPAT_H_
+#define SIMDBITCOMPAT_H_
 
 
 #if SIMDCOMP_DEBUG
@@ -38,3 +43,7 @@
 # endif
 #endif
 
+typedef unsigned int uint32_t;
+typedef unsigned char uint8_t;
+
+#endif /* SIMDBITCOMPAT_H_ */
