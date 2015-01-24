@@ -4,7 +4,7 @@
 #ifndef SIMDBITPACKING_H_
 #define SIMDBITPACKING_H_
 
-#include "compat.h"
+#include "portability.h"
 
 /* SSE2 is required */
 #include <emmintrin.h>

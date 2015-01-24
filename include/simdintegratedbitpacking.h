@@ -5,7 +5,7 @@
 #ifndef SIMD_INTEGRATED_BITPACKING_H
 #define SIMD_INTEGRATED_BITPACKING_H
 
-#include "compat.h"
+#include "portability.h"
 
 /* SSE2 is required */
 #include <emmintrin.h>

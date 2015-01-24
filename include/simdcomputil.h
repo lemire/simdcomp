@@ -5,7 +5,7 @@
 #ifndef SIMDCOMPUTIL_H_
 #define SIMDCOMPUTIL_H_
 
-#include "compat.h"
+#include "portability.h"
 
 /* SSE2 is required */
 #include <emmintrin.h>
