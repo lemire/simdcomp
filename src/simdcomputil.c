@@ -51,3 +51,34 @@ uint32_t simdmaxbitsd1(uint32_t initvalue, const uint32_t * in) {
     return maxbitas32int(accumulator);
 }
 
+
+/* maxbit over |length| integers with provided initial value */
+uint32_t simdmaxbitsd1givenlength(uint32_t initvalue, const uint32_t * in,
+                uint32_t length) {
+    __m128i initoffset = _mm_set1_epi32(initvalue);
+    const __m128i *pin = (const __m128i *)(in);
+    __m128i newvec = _mm_load_si128(pin);
+    __m128i accumulator = Delta(newvec, initoffset);
+    __m128i oldvec = newvec;
+    uint32_t tmparray[4];
+    /* process 4 integers and build an accumulator */
+    uint32_t k = 1;
+    uint32_t acc;
+    while (k * 4 + 4 < length) {
+        newvec = _mm_load_si128(pin + k);
+        accumulator = _mm_or_si128(accumulator, Delta(newvec, oldvec));
+        oldvec = newvec;
+        k++;
+    }
+
+    /* extract the accumulator as an integer */
+    _mm_storeu_si128((__m128i *)(tmparray), accumulator);
+    acc = tmparray[0] | tmparray[1] | tmparray[2] | tmparray[3];
+
+    /* now process the remaining integers */
+    for (k *= 4; k < length; k++)
+        acc |= in[k] - (k == 0 ? initvalue : in[k - 1]);
+
+    /* return the number of bits */
+    return bits(acc);
+}
