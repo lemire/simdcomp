@@ -25,6 +25,10 @@ enum{ SIMDBlockSize = 128};
    and using differential coding */
 uint32_t simdmaxbitsd1(uint32_t initvalue, const uint32_t * in);
 
+/* like simdmaxbitsd1, but calculates maxbits over |length| integers 
+   with provided initial value. |length| can be any arbitrary value. */
+uint32_t simdmaxbitsd1_length(uint32_t initvalue, const uint32_t * in,
+                uint32_t length);
 
 
 
