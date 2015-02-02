@@ -6,7 +6,7 @@
 #include "simdcomp.h"
 
 
-int main() {
+int test() {
     int N = 5000 * SIMDBlockSize, gap;
     __m128i * buffer = malloc(SIMDBlockSize * sizeof(uint32_t));
     uint32_t * datain = malloc(N * sizeof(uint32_t));
@@ -63,5 +63,49 @@ int main() {
     free(datain);
     free(backbuffer);
     printf("Code looks good.\n");
+    return 0;
+}
+
+#define MAX 300
+int test_simdmaxbitsd1_length() {
+    uint32_t result, buffer[MAX + 1];
+    int i, j;
+
+    memset(&buffer[0], 0xff, sizeof(buffer));
+
+    /* this test creates buffers of different length; each buffer is
+     * initialized to result in the following deltas:
+     * length 1: 2
+     * length 2: 1 2
+     * length 3: 1 1 2
+     * length 4: 1 1 1 2
+     * length 5: 1 1 1 1 2
+     * etc. Each sequence's "maxbits" is 2. */
+    for (i = 0; i < MAX; i++) {
+      for (j = 0; j < i; j++)
+        buffer[j] = j + 1;
+      buffer[i] = i + 2;
+
+      result = simdmaxbitsd1_length(0, &buffer[0], i + 1);
+      if (result != 2) {
+        printf("simdmaxbitsd1_length: unexpected result %u in loop %d\n",
+                result, i);
+        return -1;
+      }
+    }
+    printf("simdmaxbitsd1_length: ok\n");
+    return 0;
+}
+
+int main() {
+    int r;
+   
+    r = test();
+    if (r)
+        return r;
+
+    r = test_simdmaxbitsd1_length();
+    if (r)
+        return r;
     return 0;
 }
