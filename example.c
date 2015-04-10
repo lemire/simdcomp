@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <time.h>
+#include <stdlib.h>
 #include "simdcomp.h"
 
 
@@ -32,7 +33,6 @@ int main() {
     uint32_t * datain = malloc(N * sizeof(uint32_t));
     size_t compsize;
     clock_t start, end;
-
     uint8_t * buffer = malloc(N * sizeof(uint32_t) + N / SIMDBlockSize); /* output buffer */
     uint32_t * backbuffer = malloc(SIMDBlockSize * sizeof(uint32_t));
     for (gap = 1; gap <= 243; gap *= 3) {
@@ -43,8 +43,9 @@ int main() {
 
     	printf("\n");
         printf(" gap = %u \n", gap);
-        for (k = 0; k < N; ++k)
-            datain[k] = k * gap;
+        datain[0] = 0;
+        for (k = 1; k < N; ++k)
+            datain[k] = datain[k-1] + ( rand() % (gap + 1) );
         compsize = compress(datain,N,buffer);
         printf("compression ratio = %f \n",  (N * sizeof(uint32_t))/ (compsize * 1.0 ));
         start = clock();

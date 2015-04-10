@@ -7,6 +7,8 @@ This library can decode at least 4 billions of compressed integers per second on
 desktop or laptop processors. That is, it can decompress data at a rate of 15 GB/s.
 This is significantly faster than generic codecs like gzip, LZO, Snappy or LZ4.
 
+The assumption is either that you have a list of 32-bit integers where most of them are small, or a list of 32-bit integers where differences between successive integers are small. No software is able to reliably compress an array of random numbers.
+
 What is it for?
 -------------
 
