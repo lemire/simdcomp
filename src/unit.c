@@ -1,6 +1,7 @@
 /**
  * This code is released under a BSD License.
  */
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "simdcomp.h"
@@ -97,6 +98,70 @@ int test_simdmaxbitsd1_length() {
     return 0;
 }
 
+int test_simdpackedsearch() {
+    uint32_t buffer[128];
+    uint32_t result, initial = 0;
+    int b, i;
+
+    /* initialize the buffer */
+    for (i = 0; i < 128; i++)
+        buffer[i] = (uint32_t)(i + 1);
+
+    /* this test creates delta encoded buffers with different bits, then
+     * performs lower bound searches for each key */
+    for (b = 1; b <= 32; b++) {
+        uint32_t out[128];
+        /* delta-encode to 'i' bits */
+        simdpackwithoutmaskd1(initial, buffer, (__m128i *)out, b);
+
+        printf("simdsearchd1: %d bits\n", b);
+
+        /* now perform the searches */
+        assert(simdsearchd1(initial, (__m128i *)out, b, 128, 0, &result) == 0);
+        assert(result > 0);
+
+        for (i = 1; i <= 128; i++) {
+            assert(simdsearchd1(initial, (__m128i *)out, b, 128,
+                                    (uint32_t)i, &result) == i - 1);
+            assert(result == (unsigned)i);
+        }
+
+        assert(simdsearchd1(initial, (__m128i *)out, b, 128, 200, &result)
+                        == 128);
+        assert(result > 200);
+    }
+    printf("simdsearchd1: ok\n");
+    return 0;
+}
+
+int test_simdpackedselect() {
+    uint32_t buffer[128];
+    uint32_t initial = 33;
+    int b, i;
+
+    /* initialize the buffer */
+    for (i = 0; i < 128; i++)
+        buffer[i] = (uint32_t)(initial + i);
+
+    /* this test creates delta encoded buffers with different bits, then
+     * performs lower bound searches for each key */
+    for (b = 1; b <= 32; b++) {
+        uint32_t out[128];
+        /* delta-encode to 'i' bits */
+        simdpackwithoutmaskd1(initial, buffer, (__m128i *)out, b);
+
+        printf("simdselectd1: %d bits\n", b);
+
+        /* now perform the searches */
+        for (i = 0; i < 128; i++) {
+            assert(simdselectd1(initial, (__m128i *)out, b, (uint32_t)i)
+                            == initial + i);
+        }
+    }
+    printf("simdselectd1: ok\n");
+    return 0;
+}
+
 int main() {
     int r;
    
@@ -107,5 +172,14 @@ int main() {
     r = test_simdmaxbitsd1_length();
     if (r)
         return r;
+
+    r = test_simdpackedsearch();
+    if (r)
+        return r;
+
+    r = test_simdpackedselect();
+    if (r)
+        return r;
+
     return 0;
 }
