@@ -4,6 +4,7 @@
 .SUFFIXES: .cpp .o .c .h
 
 CFLAGS = -fPIC -std=c89 -O3 -march=native -Wall -Wextra -pedantic
+CXXFLAGS = -fPIC -O3 -march=native -Wall -Wextra -pedantic
 LDFLAGS = -shared
 LIBNAME=libsimdcomp.so.0.0.3
 all:  unit unit_chars $(LIBNAME)
@@ -27,7 +28,8 @@ uninstall:
 	ldconfig
 
 
-OBJECTS= simdbitpacking.o simdintegratedbitpacking.o simdcomputil.o
+OBJECTS= simdbitpacking.o simdintegratedbitpacking.o simdcomputil.o \
+		 simdpackedsearch.o simdpackedselect.o
 
 $(LIBNAME): $(OBJECTS)
 	$(CC) $(CFLAGS) -o $(LIBNAME) $(OBJECTS)  $(LDFLAGS) 
@@ -42,6 +44,12 @@ simdbitpacking.o: ./src/simdbitpacking.c $(HEADERS)
 
 simdintegratedbitpacking.o: ./src/simdintegratedbitpacking.c  $(HEADERS)
 	$(CC) $(CFLAGS) -c ./src/simdintegratedbitpacking.c -Iinclude  
+
+simdpackedsearch.o: ./src/simdpackedsearch.cc $(HEADERS)
+	$(CXX) $(CXXFLAGS) -c ./src/simdpackedsearch.cc -Iinclude  
+
+simdpackedselect.o: ./src/simdpackedselect.cc $(HEADERS)
+	$(CXX) $(CXXFLAGS) -c ./src/simdpackedselect.cc -Iinclude -msse4
 
 example: ./example.c    $(HEADERS) $(OBJECTS)
 	$(CC) $(CFLAGS) -o example ./example.c -Iinclude  $(OBJECTS)
