@@ -56,10 +56,13 @@ example: ./example.c    $(HEADERS) $(OBJECTS)
 
 unit: ./src/unit.c    $(HEADERS) $(OBJECTS)
 	$(CC) $(CFLAGS) -o unit ./src/unit.c -Iinclude  $(OBJECTS)
+	
+benchmark: ./src/benchmark.c    $(HEADERS) $(OBJECTS)
+	$(CC) $(CFLAGS) -o benchmark ./src/benchmark.c -Iinclude  $(OBJECTS)
 dynunit: ./src/unit.c    $(HEADERS) $(LIBNAME)
 	$(CC) $(CFLAGS) -o dynunit ./src/unit.c -Iinclude  -lsimdcomp 
 
 unit_chars: ./src/unit_chars.c    $(HEADERS) $(OBJECTS)
 	$(CC) $(CFLAGS) -o unit_chars ./src/unit_chars.c -Iinclude  $(OBJECTS)
 clean: 
-	rm -f unit *.o $(LIBNAME) example
+	rm -f unit *.o $(LIBNAME) example benchmark dynunit unit_chars
