@@ -30,8 +30,11 @@ void simdpackwithoutmaskd1(uint32_t initvalue, const uint32_t *  in,__m128i *  o
 void simdunpackd1(uint32_t initvalue, const __m128i *  in,uint32_t *  out, const uint32_t bit);
 
 /* searches "bit" 128-bit vectors from "in" for the first encoded uint32 value
- * which is >= |key|, and returns its position.
- * The encoded key is stored in "*presult". */
+ * which is >= |key|, and returns its position. It is assumed that the values
+ * stored are in sorted order.
+ * The encoded key is stored in "*presult". The search is done only over
+ * the first length decoded integers, ignoring others. If no value is larger or equal to the key,
+ * length is returned */
 int simdsearchd1(uint32_t initvalue, const __m128i *in, uint32_t bit,
                 int length, uint32_t key, uint32_t *presult);
 

@@ -70,11 +70,16 @@ static const __m128i conversion = _mm_set1_epi32(2147483648u);
       } while (0)
 
 static int
-iunpacksearch0(__m128i /* initOffset */, const __m128i * /*_in*/, int length,
+iunpacksearch0(__m128i  initOffset , const __m128i * /*_in*/, int length,
                 uint32_t key, uint32_t *presult)
 {
-  assert(!"not possible to search an empty array");
-
+	if (length > 0) {
+		uint32_t repeatedvalue = (uint32_t) _mm_extract_epi32(initOffset, 3);
+		if (repeatedvalue >= key) {
+			*presult = repeatedvalue;
+			return 0;
+		}
+	}
   *presult = key + 1;
   return (length);
 }

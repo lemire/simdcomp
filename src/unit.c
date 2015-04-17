@@ -98,6 +98,18 @@ int test_simdmaxbitsd1_length() {
     return 0;
 }
 
+int uint32_cmp(const void *a, const void *b)
+{
+    const uint32_t *ia = (const uint32_t *)a;
+    const uint32_t *ib = (const uint32_t *)b;
+    if(*ia < *ib)
+    	return -1;
+    else if (*ia > *ib)
+    	return 1;
+    return 0;
+}
+
+
 int test_simdpackedsearch() {
     uint32_t buffer[128];
     uint32_t result, initial = 0;
@@ -134,6 +146,87 @@ int test_simdpackedsearch() {
     return 0;
 }
 
+int test_simdpackedsearch_advanced() {
+    uint32_t buffer[128];
+    uint32_t backbuffer[128];
+	uint32_t out[128];
+    uint32_t result, initial = 0;
+    uint32_t b, i;
+
+
+    /* this test creates delta encoded buffers with different bits, then
+     * performs lower bound searches for each key */
+    for (b = 0; b <= 32; b++) {
+    	uint32_t prev = initial;
+        /* initialize the buffer */
+        for (i = 0; i < 128; i++) {
+            buffer[i] =  ((uint32_t)(1431655765 * i + 0xFFFFFFFF)) ;
+            if(b < 32) buffer[i] %= (1<<b);
+        }
+
+        qsort(buffer,128, sizeof(uint32_t), uint32_cmp);
+
+        for (i = 0; i < 128; i++) {
+           buffer[i] = buffer[i] + prev;
+           prev = buffer[i];
+        }
+        for (i = 1; i < 128; i++) {
+        	if(buffer[i] < buffer[i-1] )
+        		buffer[i] = buffer[i-1];
+        }
+        assert(simdmaxbitsd1(initial, buffer)<=b);
+        for (i = 0; i < 128; i++) {
+        	out[i] = 0; /* memset would do too */
+        }
+
+        /* delta-encode to 'i' bits */
+        simdpackwithoutmaskd1(initial, buffer, (__m128i *)out, b);
+        simdunpackd1(initial,  (__m128i *)out, backbuffer, b);
+
+        for (i = 0; i < 128; i++) {
+        	assert(buffer[i] == backbuffer[i]); /* memset would do too */
+        }
+
+        printf("advanced simdsearchd1: %d bits\n", b);
+
+        for (i = 0; i < 128; i++) {
+        	int pos = simdsearchd1(initial, (__m128i *)out, b, 128,
+                    buffer[i], &result);
+        	assert(buffer[pos] == buffer[i]);
+            if(pos > 0)
+            	assert(buffer[pos - 1] < buffer[i]);
+            assert(result == buffer[i]);
+        }
+        for (i = 0; i < 128; i++) {
+        	int pos;
+        	if(buffer[i] == 0) continue;
+        	pos = simdsearchd1(initial, (__m128i *)out, b, 128,
+                    buffer[i] - 1, &result);
+            assert(buffer[pos] >= buffer[i]  - 1);
+            if(pos > 0)
+            	assert(buffer[pos - 1] < buffer[i]  - 1);
+            assert(result == buffer[pos]);
+        }
+		for (i = 0; i < 128; i++) {
+			int pos;
+			if (buffer[i] + 1 == 0)
+				continue;
+			pos = simdsearchd1(initial, (__m128i *) out, b, 128,
+					buffer[i] + 1, &result);
+			if(pos == 128) {
+				assert(buffer[i] == buffer[127]);
+			} else {
+			  assert(buffer[pos] >= buffer[i] + 1);
+			  if (pos > 0)
+				assert(buffer[pos - 1] < buffer[i] + 1);
+			  assert(result == buffer[pos]);
+			}
+		}
+    }
+    printf("advanced simdsearchd1: ok\n");
+    return 0;
+}
+
 int test_simdpackedselect() {
     uint32_t buffer[128];
     uint32_t initial = 33;
@@ -162,6 +255,53 @@ int test_simdpackedselect() {
     return 0;
 }
 
+int test_simdpackedselect_advanced() {
+    uint32_t buffer[128];
+    uint32_t initial = 33;
+    uint32_t b;
+    int i;
+
+    /* this test creates delta encoded buffers with different bits, then
+     * performs lower bound searches for each key */
+    for (b = 0; b <= 32; b++) {
+        uint32_t prev = initial;
+    	uint32_t out[128];
+        /* initialize the buffer */
+        for (i = 0; i < 128; i++) {
+            buffer[i] =  ((uint32_t)(1431655765 * i + 0xFFFFFFFF)) ;
+            if(b < 32) buffer[i] %= (1<<b);
+        }
+        for (i = 0; i < 128; i++) {
+           buffer[i] = buffer[i] + prev;
+           prev = buffer[i];
+        }
+
+        for (i = 1; i < 128; i++) {
+        	if(buffer[i] < buffer[i-1] )
+        		buffer[i] = buffer[i-1];
+        }
+        assert(simdmaxbitsd1(initial, buffer)<=b);
+
+        for (i = 0; i < 128; i++) {
+        	out[i] = 0; /* memset would do too */
+        }
+
+        /* delta-encode to 'i' bits */
+        simdpackwithoutmaskd1(initial, buffer, (__m128i *)out, b);
+
+        printf("simdselectd1: %d bits\n", b);
+
+        /* now perform the searches */
+        for (i = 0; i < 128; i++) {
+        	uint32_t valretrieved = simdselectd1(initial, (__m128i *)out, b, (uint32_t)i);
+            assert(valretrieved == buffer[i]);
+        }
+    }
+    printf("advanced simdselectd1: ok\n");
+    return 0;
+}
+
+
 int main() {
     int r;
    
@@ -177,9 +317,19 @@ int main() {
     if (r)
         return r;
 
+    r = test_simdpackedsearch_advanced();
+    if (r)
+        return r;
+
+
     r = test_simdpackedselect();
     if (r)
         return r;
+
+    r = test_simdpackedselect_advanced();
+    if (r)
+        return r;
+
 
     return 0;
 }

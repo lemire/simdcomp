@@ -25,13 +25,6 @@
               }                                                             \
             }
 
-static uint32_t
-iunpackselect0(__m128i /*initOffset*/, const __m128i * /* _in */,
-        int /* slot */)
-{
-  assert(!"not possible to search an empty array");
-  return (0);
-}
 
 static uint32_t
 iunpackselect1(__m128i initOffset, const __m128i *in, int slot)
@@ -7701,7 +7694,7 @@ simdselectd1(uint32_t initvalue, const __m128i *in, uint32_t bit, int slot)
 
    __m128i initOffset = _mm_set1_epi32 (initvalue);
    switch (bit) {
-    case 0: return iunpackselect0(initOffset, in, slot); break;
+    case 0: return initvalue; break;
 
     case 1: return iunpackselect1(initOffset, in, slot); break;
 
