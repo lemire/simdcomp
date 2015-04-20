@@ -129,16 +129,16 @@ int test_simdpackedsearch() {
         printf("simdsearchd1: %d bits\n", b);
 
         /* now perform the searches */
-        assert(simdsearchd1(initial, (__m128i *)out, b, 128, 0, &result) == 0);
+        assert(simdsearchd1(initial, (__m128i *)out, b, 0, &result) == 0);
         assert(result > 0);
 
         for (i = 1; i <= 128; i++) {
-            assert(simdsearchd1(initial, (__m128i *)out, b, 128,
+            assert(simdsearchd1(initial, (__m128i *)out, b,
                                     (uint32_t)i, &result) == i - 1);
             assert(result == (unsigned)i);
         }
 
-        assert(simdsearchd1(initial, (__m128i *)out, b, 128, 200, &result)
+        assert(simdsearchd1(initial, (__m128i *)out, b, 200, &result)
                         == 128);
         assert(result > 200);
     }
@@ -190,9 +190,9 @@ int test_simdpackedsearch_advanced() {
         printf("advanced simdsearchd1: %d bits\n", b);
 
         for (i = 0; i < 128; i++) {
-        	int pos = simdsearchd1(initial, (__m128i *)out, b, 128,
+        	int pos = simdsearchd1(initial, (__m128i *)out, b,
                     buffer[i], &result);
-        	assert(pos == newsimdsearchd1(initial, (__m128i *)out, b, 128,
+        	assert(pos == simdsearchwithlengthd1(initial, (__m128i *)out, b, 128,
                     buffer[i], &result));
         	assert(buffer[pos] == buffer[i]);
             if(pos > 0)
@@ -202,9 +202,9 @@ int test_simdpackedsearch_advanced() {
         for (i = 0; i < 128; i++) {
         	int pos;
         	if(buffer[i] == 0) continue;
-        	pos = simdsearchd1(initial, (__m128i *)out, b, 128,
+        	pos = simdsearchd1(initial, (__m128i *)out, b,
                     buffer[i] - 1, &result);
-        	assert(pos == newsimdsearchd1(initial, (__m128i *)out, b, 128,
+        	assert(pos == simdsearchwithlengthd1(initial, (__m128i *)out, b, 128,
                     buffer[i] - 1, &result));
         	assert(buffer[pos] >= buffer[i]  - 1);
             if(pos > 0)
@@ -215,9 +215,9 @@ int test_simdpackedsearch_advanced() {
 			int pos;
 			if (buffer[i] + 1 == 0)
 				continue;
-			pos = simdsearchd1(initial, (__m128i *) out, b, 128,
+			pos = simdsearchd1(initial, (__m128i *) out, b,
 					buffer[i] + 1, &result);
-        	assert(pos == newsimdsearchd1(initial, (__m128i *)out, b, 128,
+        	assert(pos == simdsearchwithlengthd1(initial, (__m128i *)out, b, 128,
                     buffer[i] + 1, &result));
 			if(pos == 128) {
 				assert(buffer[i] == buffer[127]);
