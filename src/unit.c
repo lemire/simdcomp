@@ -192,6 +192,8 @@ int test_simdpackedsearch_advanced() {
         for (i = 0; i < 128; i++) {
         	int pos = simdsearchd1(initial, (__m128i *)out, b, 128,
                     buffer[i], &result);
+        	assert(pos == newsimdsearchd1(initial, (__m128i *)out, b, 128,
+                    buffer[i], &result));
         	assert(buffer[pos] == buffer[i]);
             if(pos > 0)
             	assert(buffer[pos - 1] < buffer[i]);
@@ -202,7 +204,9 @@ int test_simdpackedsearch_advanced() {
         	if(buffer[i] == 0) continue;
         	pos = simdsearchd1(initial, (__m128i *)out, b, 128,
                     buffer[i] - 1, &result);
-            assert(buffer[pos] >= buffer[i]  - 1);
+        	assert(pos == newsimdsearchd1(initial, (__m128i *)out, b, 128,
+                    buffer[i] - 1, &result));
+        	assert(buffer[pos] >= buffer[i]  - 1);
             if(pos > 0)
             	assert(buffer[pos - 1] < buffer[i]  - 1);
             assert(result == buffer[pos]);
@@ -213,6 +217,8 @@ int test_simdpackedsearch_advanced() {
 				continue;
 			pos = simdsearchd1(initial, (__m128i *) out, b, 128,
 					buffer[i] + 1, &result);
+        	assert(pos == newsimdsearchd1(initial, (__m128i *)out, b, 128,
+                    buffer[i] + 1, &result));
 			if(pos == 128) {
 				assert(buffer[i] == buffer[127]);
 			} else {
