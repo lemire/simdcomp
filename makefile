@@ -4,10 +4,8 @@
 .SUFFIXES: .cpp .o .c .h
 ifeq ($(DEBUG),1)
 CFLAGS = -fPIC  -std=c89 -ggdb -march=native -Wall -Wextra -pedantic
-CXXFLAGS = -fPIC -ggdb -march=native -Wall -Wextra -pedantic
 else
 CFLAGS = -fPIC -std=c89 -O3 -march=native -Wall -Wextra -pedantic
-CXXFLAGS = -fPIC -O3 -march=native -Wall -Wextra -pedantic
 endif # debug
 LDFLAGS = -shared
 LIBNAME=libsimdcomp.so.0.0.3
@@ -49,11 +47,11 @@ simdbitpacking.o: ./src/simdbitpacking.c $(HEADERS)
 simdintegratedbitpacking.o: ./src/simdintegratedbitpacking.c  $(HEADERS)
 	$(CC) $(CFLAGS) -c ./src/simdintegratedbitpacking.c -Iinclude  
 
-simdpackedsearch.o: ./src/simdpackedsearch.cc $(HEADERS)
-	$(CXX) $(CXXFLAGS) -c ./src/simdpackedsearch.cc -Iinclude  
+simdpackedsearch.o: ./src/simdpackedsearch.c $(HEADERS)
+	$(CC) $(CFLAGS) -c ./src/simdpackedsearch.c -Iinclude  
 
-simdpackedselect.o: ./src/simdpackedselect.cc $(HEADERS)
-	$(CXX) $(CXXFLAGS) -c ./src/simdpackedselect.cc -Iinclude -msse4
+simdpackedselect.o: ./src/simdpackedselect.c $(HEADERS)
+	$(CC) $(CFLAGS) -c ./src/simdpackedselect.c -Iinclude 
 
 example: ./example.c    $(HEADERS) $(OBJECTS)
 	$(CC) $(CFLAGS) -o example ./example.c -Iinclude  $(OBJECTS)

@@ -310,7 +310,7 @@ int test_simdpackedselect_advanced() {
 
 int main() {
     int r;
-   
+
     r = test();
     if (r)
         return r;

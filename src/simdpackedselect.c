@@ -1,17 +1,33 @@
 /**
  * This code is released under a BSD License.
  */
-#include <algorithm>
-#include <assert.h>
 #include "simdintegratedbitpacking.h"
 #include <smmintrin.h>
 
+/* Not allowed in C:
 const static __m128i shuffle_mask[4] = {
         _mm_set_epi8(0,0,0,0,0,0,0,0,0,0,0,0,3,2,1,0),
         _mm_set_epi8(0,0,0,0,0,0,0,0,0,0,0,0,7,6,5,4),
         _mm_set_epi8(0,0,0,0,0,0,0,0,0,0,0,0,11,10,9,8),
         _mm_set_epi8(0,0,0,0,0,0,0,0,0,0,0,0,15,14,13,12),
+    };*/
+
+#if defined(_MSC_VER)
+#define ALIGNED(x) __declspec(align(x))
+#else
+#if defined(__GNUC__)
+#define ALIGNED(x) __attribute__ ((aligned(x)))
+#endif
+#endif
+
+int8_t shuffle_mask_bytes[16 * 16 ] ALIGNED(16) = {
+		0,1,2,3,0,0,0,0,0,0,0,0,0,0,0,0,
+		4,5,6,7,0,0,0,0,0,0,0,0,0,0,0,0,
+		8,9,10,11,0,0,0,0,0,0,0,0,0,0,0,0,
+		12,13,14,15,0,0,0,0,0,0,0,0,0,0,0,0,
     };
+
+static const __m128i *shuffle_mask = (__m128i *) shuffle_mask_bytes;
 
 uint32_t branchlessextract (__m128i out, int i)  {
   return _mm_cvtsi128_si32(_mm_shuffle_epi8(out,shuffle_mask[i]));
@@ -231,7 +247,7 @@ iunpackselect1(__m128i initOffset, const __m128i *in, int slot)
   initOffset = out;
   CHECK_AND_INCREMENT(i, out, slot);
 
-  assert(!"shouldn't be here");
+
   return (0);
 }
 
@@ -437,7 +453,7 @@ iunpackselect2(__m128i initOffset, const __m128i *in, int slot)
   initOffset = out;
   CHECK_AND_INCREMENT(i, out, slot);
 
-  assert(!"shouldn't be here");
+
   return (0);
 }
 
@@ -648,7 +664,7 @@ iunpackselect3(__m128i initOffset, const  __m128i *in, int slot)
   initOffset = out;
   CHECK_AND_INCREMENT(i, out, slot);
 
-  assert(!"shouldn't be here");
+
   return (0);
 }
 
@@ -856,7 +872,7 @@ iunpackselect4(__m128i initOffset, const __m128i *in, int slot)
   initOffset = out;
   CHECK_AND_INCREMENT(i, out, slot);
 
-  assert(!"shouldn't be here");
+
   return (0);
 }
 
@@ -1073,7 +1089,7 @@ iunpackselect5(__m128i initOffset, const __m128i *in, int slot)
   initOffset = out;
   CHECK_AND_INCREMENT(i, out, slot);
 
-  assert(!"shouldn't be here");
+
   return (0);
 }
 
@@ -1291,7 +1307,7 @@ iunpackselect6(__m128i initOffset, const __m128i *in, int slot)
   initOffset = out;
   CHECK_AND_INCREMENT(i, out, slot);
 
-  assert(!"shouldn't be here");
+
   return (0);
 }
 
@@ -1514,7 +1530,7 @@ iunpackselect7(__m128i initOffset, const __m128i *in, int slot)
   initOffset = out;
   CHECK_AND_INCREMENT(i, out, slot);
 
-  assert(!"shouldn't be here");
+
   return (0);
 }
 
@@ -1726,7 +1742,7 @@ iunpackselect8(__m128i initOffset, const __m128i *in, int slot)
   initOffset = out;
   CHECK_AND_INCREMENT(i, out, slot);
 
-  assert(!"shouldn't be here");
+
   return (0);
 }
 
@@ -1955,7 +1971,7 @@ iunpackselect9(__m128i initOffset, const __m128i *in, int slot)
   initOffset = out;
   CHECK_AND_INCREMENT(i, out, slot);
 
-  assert(!"shouldn't be here");
+
   return (0);
 }
 
@@ -2185,7 +2201,7 @@ iunpackselect10(__m128i initOffset, const __m128i *in, int slot)
   initOffset = out;
   CHECK_AND_INCREMENT(i, out, slot);
 
-  assert(!"shouldn't be here");
+
   return (0);
 }
 
@@ -2420,7 +2436,7 @@ iunpackselect11(__m128i initOffset, const __m128i *in, int slot)
   initOffset = out;
   CHECK_AND_INCREMENT(i, out, slot);
 
-  assert(!"shouldn't be here");
+
   return (0);
 }
 
@@ -2652,7 +2668,7 @@ iunpackselect12(__m128i initOffset, const __m128i *in, int slot)
   initOffset = out;
   CHECK_AND_INCREMENT(i, out, slot);
 
-  assert(!"shouldn't be here");
+
   return (0);
 }
 
@@ -2893,7 +2909,7 @@ iunpackselect13(__m128i initOffset, const __m128i *in, int slot)
   initOffset = out;
   CHECK_AND_INCREMENT(i, out, slot);
 
-  assert(!"shouldn't be here");
+
   return (0);
 }
 
@@ -3135,7 +3151,7 @@ iunpackselect14(__m128i initOffset, const __m128i *in, int slot)
   initOffset = out;
   CHECK_AND_INCREMENT(i, out, slot);
 
-  assert(!"shouldn't be here");
+
   return (0);
 }
 
@@ -3382,7 +3398,7 @@ iunpackselect15(__m128i initOffset, const __m128i *in, int slot)
   initOffset = out;
   CHECK_AND_INCREMENT(i, out, slot);
 
-  assert(!"shouldn't be here");
+
   return (0);
 }
 
@@ -3602,7 +3618,7 @@ iunpackselect16(__m128i initOffset, const __m128i *in, int slot)
   initOffset = out;
   CHECK_AND_INCREMENT(i, out, slot);
 
-  assert(!"shouldn't be here");
+
   return (0);
 }
 
@@ -3855,7 +3871,7 @@ iunpackselect17(__m128i initOffset, const __m128i *in, int slot)
   initOffset = out;
   CHECK_AND_INCREMENT(i, out, slot);
 
-  assert(!"shouldn't be here");
+
   return (0);
 }
 
@@ -4109,7 +4125,7 @@ iunpackselect18(__m128i initOffset, const __m128i *in, int slot)
   initOffset = out;
   CHECK_AND_INCREMENT(i, out, slot);
 
-  assert(!"shouldn't be here");
+
   return (0);
 }
 
@@ -4368,7 +4384,7 @@ iunpackselect19(__m128i initOffset, const __m128i *in, int slot)
   initOffset = out;
   CHECK_AND_INCREMENT(i, out, slot);
 
-  assert(!"shouldn't be here");
+
   return (0);
 }
 
@@ -4624,7 +4640,7 @@ iunpackselect20(__m128i initOffset, const __m128i *in, int slot)
   initOffset = out;
   CHECK_AND_INCREMENT(i, out, slot);
 
-  assert(!"shouldn't be here");
+
   return (0);
 }
 
@@ -4889,7 +4905,7 @@ iunpackselect21(__m128i initOffset, const __m128i *in, int slot)
   initOffset = out;
   CHECK_AND_INCREMENT(i, out, slot);
 
-  assert(!"shouldn't be here");
+
   return (0);
 }
 
@@ -5155,7 +5171,7 @@ iunpackselect22(__m128i initOffset, const __m128i *in, int slot)
   initOffset = out;
   CHECK_AND_INCREMENT(i, out, slot);
 
-  assert(!"shouldn't be here");
+
   return (0);
 }
 
@@ -5426,7 +5442,7 @@ iunpackselect23(__m128i initOffset, const __m128i *in, int slot)
   initOffset = out;
   CHECK_AND_INCREMENT(i, out, slot);
 
-  assert(!"shouldn't be here");
+
   return (0);
 }
 
@@ -5686,7 +5702,7 @@ iunpackselect24(__m128i initOffset, const __m128i *in, int slot)
   initOffset = out;
   CHECK_AND_INCREMENT(i, out, slot);
 
-  assert(!"shouldn't be here");
+
   return (0);
 }
 
@@ -5963,7 +5979,7 @@ iunpackselect25(__m128i initOffset, const __m128i *in, int slot)
   initOffset = out;
   CHECK_AND_INCREMENT(i, out, slot);
 
-  assert(!"shouldn't be here");
+
   return (0);
 }
 
@@ -6241,7 +6257,7 @@ iunpackselect26(__m128i initOffset, const __m128i *in, int slot)
   initOffset = out;
   CHECK_AND_INCREMENT(i, out, slot);
 
-  assert(!"shouldn't be here");
+
   return (0);
 }
 
@@ -6524,7 +6540,7 @@ iunpackselect27(__m128i initOffset, const __m128i *in, int slot)
   initOffset = out;
   CHECK_AND_INCREMENT(i, out, slot);
 
-  assert(!"shouldn't be here");
+
   return (0);
 }
 
@@ -6804,7 +6820,7 @@ iunpackselect28(__m128i initOffset, const __m128i *in, int slot)
   initOffset = out;
   CHECK_AND_INCREMENT(i, out, slot);
 
-  assert(!"shouldn't be here");
+
   return (0);
 }
 
@@ -7093,7 +7109,7 @@ iunpackselect29(__m128i initOffset, const __m128i *in, int slot)
   initOffset = out;
   CHECK_AND_INCREMENT(i, out, slot);
 
-  assert(!"shouldn't be here");
+
   return (0);
 }
 
@@ -7383,7 +7399,7 @@ iunpackselect30(__m128i initOffset, const __m128i *in, int slot)
   initOffset = out;
   CHECK_AND_INCREMENT(i, out, slot);
 
-  assert(!"shouldn't be here");
+
   return (0);
 }
 
@@ -7678,25 +7694,24 @@ iunpackselect31(__m128i initOffset, const __m128i *in, int slot)
   initOffset = out;
   CHECK_AND_INCREMENT(i, out, slot);
 
-  assert(!"shouldn't be here");
+
   return (0);
 }
 
 static uint32_t
-iunpackselect32(__m128i /* initOffset */, const __m128i *in, int slot)
+iunpackselect32(__m128i initOffset , const __m128i *in, int slot)
 {
   uint32_t *begin = (uint32_t *)in;
+  (void) initOffset;
   return begin[slot];
 }
 
-extern "C" {
 
 uint32_t
 simdselectd1(uint32_t initvalue, const __m128i *in, uint32_t bit, int slot)
 {
-   assert(slot >= 0 && slot <= 127);
-
    __m128i initOffset = _mm_set1_epi32 (initvalue);
+   slot &= 127; /* to avoid problems */
    switch (bit) {
     case 0: return initvalue; break;
 
@@ -7767,9 +7782,6 @@ simdselectd1(uint32_t initvalue, const __m128i *in, uint32_t bit, int slot)
     default: break;
    }
 
-   assert(!"shouldn't be here");
    return (-1);
 }
-
-} // extern "C"
 

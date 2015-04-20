@@ -1,12 +1,13 @@
 /**
  * This code is released under a BSD License.
  */
-#include <algorithm>
-#include <assert.h>
 #include <smmintrin.h>
 #include "simdintegratedbitpacking.h"
 
-const static __m128i shuffle_mask[16] = {
+
+/*
+ * Not allowed in C:
+ * const static __m128i shuffle_mask[16] = {
         _mm_set_epi8(15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0),
         _mm_set_epi8(15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0),
         _mm_set_epi8(15,14,13,12,11,10,9,8,7,6,5,4,7,6,5,4),
@@ -23,7 +24,54 @@ const static __m128i shuffle_mask[16] = {
         _mm_set_epi8(15,14,13,12,15,14,13,12,11,10,9,8,3,2,1,0),
         _mm_set_epi8(15,14,13,12,15,14,13,12,11,10,9,8,7,6,5,4),
         _mm_set_epi8(15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0),
+    };*/
+
+#if defined(_MSC_VER)
+#define ALIGNED(x) __declspec(align(x))
+#else
+#if defined(__GNUC__)
+#define ALIGNED(x) __attribute__ ((aligned(x)))
+#endif
+#endif
+
+const static int8_t shuffle_mask_bytes[16 * 16 ]  ALIGNED(16) = {
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+        4, 5, 6, 7, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+        8, 9, 10, 11, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+        0, 1, 2, 3, 8, 9, 10, 11, 8, 9, 10, 11, 12, 13, 14, 15,
+        4, 5, 6, 7, 8, 9, 10, 11, 8, 9, 10, 11, 12, 13, 14, 15,
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+        12, 13, 14, 15, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+        0, 1, 2, 3, 12, 13, 14, 15, 8, 9, 10, 11, 12, 13, 14, 15,
+        4, 5, 6, 7, 12, 13, 14, 15, 8, 9, 10, 11, 12, 13, 14, 15,
+        0, 1, 2, 3, 4, 5, 6, 7, 12, 13, 14, 15, 12, 13, 14, 15,
+        8, 9, 10, 11, 12, 13, 14, 15, 8, 9, 10, 11, 12, 13, 14, 15,
+        0, 1, 2, 3, 8, 9, 10, 11, 12, 13, 14, 15, 12, 13, 14, 15,
+        4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 12, 13, 14, 15,
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
     };
+static const __m128i *shuffle_mask = (__m128i *) shuffle_mask_bytes;
+
+/* should emulate std:lower_bound*/
+static int lower_bound(uint32_t * A, uint32_t key, int imin, int imax)
+{
+    int imid;
+    imax --;
+    while(imin + 1 < imax) {
+        imid = imin + ((imax - imin) / 2);
+
+        if (A[imid] >= key) {
+            imax = imid;
+        } else if (A[imid] < key) {
+            imin = imid;
+        }
+    }
+    if(A[imin] >= key) return imin;
+    return imax;
+}
+
 
 #define PrefixSum(ret, curr, prev) do {                                     \
     const __m128i _tmp1 = _mm_add_epi32(_mm_slli_si128(curr, 8), curr);     \
@@ -33,17 +81,17 @@ const static __m128i shuffle_mask[16] = {
 
 
 
-// perform a lower-bound search for |key| in |out|; the resulting uint32
-// is stored in |*presult|.
+/* perform a lower-bound search for |key| in |out|; the resulting uint32
+* is stored in |*presult|.*/
 #define CHECK_AND_INCREMENT_WITH_LENGTH(i, out, length, key, presult)                   \
       do {                                                                  \
         __m128i tmpout = _mm_sub_epi32(out, conversion);                    \
         uint32_t mask = _mm_movemask_ps((__m128)  _mm_cmplt_epi32(tmpout, key4)); \
         if (mask != 15) {                                                        \
           const __m128i p = _mm_shuffle_epi8(out, shuffle_mask[mask ^ 15]);      \
-          *presult = _mm_cvtsi128_si32(p);                                        \
           int offset = __builtin_ctz(mask ^ 15);                                 \
           int remaining = length - i;                                       \
+          *presult = _mm_cvtsi128_si32(p);                                  \
           if (offset < remaining)                                           \
             return (i + offset);                                            \
         }                                                                   \
@@ -55,7 +103,7 @@ const static __m128i shuffle_mask[16] = {
       } while (0)
 
 static int
-iunpacksearchwithlength0(__m128i  initOffset , const __m128i * /*_in*/, int length,
+iunpacksearchwithlength0(__m128i  initOffset , const __m128i * _in, int length,
                 uint32_t key, uint32_t *presult)
 {
 	if (length > 0) {
@@ -65,6 +113,7 @@ iunpacksearchwithlength0(__m128i  initOffset , const __m128i * /*_in*/, int leng
 			return 0;
 		}
 	}
+	(void) _in;
   *presult = key + 1;
   return (length);
 }
@@ -7844,22 +7893,22 @@ iunpacksearchwithlength31(__m128i initOffset, const __m128i *in, int length,
   return (128);
 }
 
+
 static int
-iunpacksearchwithlength32(__m128i /*initOffset*/, const __m128i *in, int length,
+iunpacksearchwithlength32(__m128i initOffset, const __m128i *in, int length,
                 uint32_t key, uint32_t *presult)
 {
-  uint32_t *begin = (uint32_t *)in;
-  uint32_t *end = begin + length;
-  uint32_t *it = std::lower_bound(begin, end, key);
-  if (it == end) {
-    *presult = key + 1;
-    return (length);
+  uint32_t * in32 =	(uint32_t *)in;
+  int answer =   lower_bound(in32,  key, 0, length);
+  if(in32[answer] < key) {
+	    *presult = key + 1;
+	    return (length);
   }
-  *presult = *it;
-  return (it - begin);
+  (void) initOffset;
+  *presult = in32[answer];
+  return answer;
 }
 
-extern "C" {
 
 int
 simdsearchwithlengthd1(uint32_t initvalue, const __m128i *in, uint32_t bit, int length,
@@ -7938,27 +7987,26 @@ simdsearchwithlengthd1(uint32_t initvalue, const __m128i *in, uint32_t bit, int 
    return (-1);
 }
 
-} // extern "C"
 
 
 
-// perform a lower-bound search for |key| in |out|; the resulting uint32
-// is stored in |*presult|.
+/* perform a lower-bound search for |key| in |out|; the resulting uint32
+* is stored in |*presult|.*/
 #define CHECK_AND_INCREMENT(i, out,  key, presult)                   \
       do {                                                                  \
         __m128i tmpout = _mm_sub_epi32(out, conversion);                    \
         uint32_t mask = _mm_movemask_ps((__m128)  _mm_cmplt_epi32(tmpout, key4)); \
         if (mask != 15) {                                                        \
-          const __m128i p = _mm_shuffle_epi8(out, shuffle_mask[mask ^ 15]);      \
-          *presult = _mm_cvtsi128_si32(p);                                        \
+          __m128i p = _mm_shuffle_epi8(out, shuffle_mask[mask ^ 15]);      \
           int offset = __builtin_ctz(mask ^ 15);                                 \
+          *presult = _mm_cvtsi128_si32(p);                                        \
           return (i + offset);                                              \
         }                                                                   \
         i += 4;                                                             \
       } while (0)
 
 static int
-iunpacksearch0(__m128i  initOffset , const __m128i * /*_in*/,
+iunpacksearch0(__m128i  initOffset , const __m128i * _in,
                 uint32_t key, uint32_t *presult)
 {
 	uint32_t repeatedvalue = (uint32_t) _mm_extract_epi32(initOffset, 3);
@@ -7967,6 +8015,7 @@ iunpacksearch0(__m128i  initOffset , const __m128i * /*_in*/,
 			return 0;
 	}
     *presult = key + 1;
+    (void)_in;
     return (128);
 }
 
@@ -15746,21 +15795,21 @@ iunpacksearch31(__m128i initOffset, const __m128i *in,
 }
 
 static int
-iunpacksearch32(__m128i /*initOffset*/, const __m128i *in,
+iunpacksearch32(__m128i initOffset, const __m128i *in,
                 uint32_t key, uint32_t *presult)
 {
-  uint32_t *begin = (uint32_t *)in;
-  uint32_t *end = begin + 128;
-  uint32_t *it = std::lower_bound(begin, end, key);
-  if (it == end) {
-    *presult = key + 1;
-    return (128);
-  }
-  *presult = *it;
-  return (it - begin);
+	  uint32_t * in32 =	(uint32_t *)in;
+	  int answer =   lower_bound(in32,  key, 0, 128);
+	  if(in32[answer] < key) {
+		    *presult = key + 1;
+		    return (128);
+	  }
+	  *presult = in32[answer];
+	  (void)initOffset;
+	  return answer;
+
 }
 
-extern "C" {
 
 int
 simdsearchd1(uint32_t initvalue, const __m128i *in, uint32_t bit,
@@ -15839,5 +15888,4 @@ simdsearchd1(uint32_t initvalue, const __m128i *in, uint32_t bit,
    return (-1);
 }
 
-} // extern "C"
 
