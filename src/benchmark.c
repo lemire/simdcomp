@@ -25,7 +25,7 @@ void benchmarkSelect() {
         uint32_t out[128];
         /* initialize the buffer */
         for (i = 0; i < 128; i++) {
-            buffer[i] =  ((uint32_t)(1431655765 * i + 0xFFFFFFFF)) ;
+            buffer[i] =  ((uint32_t)(1655765 * i )) ;
             if(b < 32) buffer[i] %= (1<<b);
         }
         for (i = 0; i < 128; i++) {
@@ -126,7 +126,7 @@ void benchmarkSearch() {
         uint32_t prev = initial;
         /* initialize the buffer */
         for (i = 0; i < 128; i++) {
-            buffer[i] =  ((uint32_t)(1431655765 * i + 0xFFFFFFFF)) ;
+            buffer[i] =  ((uint32_t)rand()) ;
             if(b < 32) buffer[i] %= (1<<b);
         }
 
@@ -151,32 +151,14 @@ void benchmarkSearch() {
 
         for (i = 0; i < 128; i++) {
             assert(buffer[i] == backbuffer[i]);
-        }
-        for (i = 0; i < 10*128; i++) {
-
-            int pos1,pos2;
-            uint32_t pseudorandomkey  =  ((uint32_t)(3431655765 * i + 0xF0FFF0FF)) ;
-            if(b < 32) pseudorandomkey %= (1<<b);
-            if(pseudorandomkey < buffer[0]) pseudorandomkey = buffer[0];
-            else if(pseudorandomkey > buffer[127]) pseudorandomkey = buffer[127];
-
-            pos1 = simdsearchd1(initial, (__m128i *)out, b, 128,
-                                pseudorandomkey, &result);
-            pos2 =  lower_bound(backbuffer, pseudorandomkey, 0, 128);
-            assert(pos1 == pos2);
-        }
+         }
         S1 = clock();
-        for (i = 0; i < 10*128; i++) {
+        for (i = 0; i < 128 * 10; i++) {
 
             int pos;
-            uint32_t pseudorandomkey  =  ((uint32_t)(1431655765 * (i%128) + 0xFFFFFFFF));
-            if(b < 32) pseudorandomkey %= (1<<b);
-            if(pseudorandomkey < buffer[0]) pseudorandomkey = buffer[0];
-            else if(pseudorandomkey > buffer[127]) pseudorandomkey = buffer[127];
-
+            uint32_t pseudorandomkey  =  buffer[i%128];
             pos = simdsearchd1(initial, (__m128i *)out, b, 128,
                                pseudorandomkey, &result);
-
             if((result < pseudorandomkey) || (buffer[pos] != result)) {
                 printf("bug A.\n");
             } else if (pos > 0) {
@@ -187,10 +169,7 @@ void benchmarkSearch() {
         S2 = clock();
         for (i = 0; i < 128 * 10; i++) {
             int pos;
-            uint32_t pseudorandomkey  =  ((uint32_t)(1431655765 * (i%128) + 0xFFFFFFFF));
-            if(b < 32) pseudorandomkey %= (1<<b);
-            if(pseudorandomkey < buffer[0]) pseudorandomkey = buffer[0];
-            else if(pseudorandomkey > buffer[127]) pseudorandomkey = buffer[127];
+            uint32_t pseudorandomkey  =  buffer[i%128];
             simdunpackd1(initial,  (__m128i *)out, backbuffer, b);
             pos =  lower_bound(backbuffer, pseudorandomkey, 0, 128);
             result = backbuffer[pos];
