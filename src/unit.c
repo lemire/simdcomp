@@ -184,7 +184,7 @@ int test_simdpackedsearch_advanced() {
         simdunpackd1(initial,  (__m128i *)out, backbuffer, b);
 
         for (i = 0; i < 128; i++) {
-        	assert(buffer[i] == backbuffer[i]); /* memset would do too */
+        	assert(buffer[i] == backbuffer[i]);
         }
 
         printf("advanced simdsearchd1: %d bits\n", b);
