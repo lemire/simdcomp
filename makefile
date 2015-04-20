@@ -2,9 +2,13 @@
 .SUFFIXES:
 #
 .SUFFIXES: .cpp .o .c .h
-
+ifeq ($(DEBUG),1)
+CFLAGS = -fPIC  -std=c89 -ggdb -march=native -Wall -Wextra -pedantic
+CXXFLAGS = -fPIC -ggdb -march=native -Wall -Wextra -pedantic
+else
 CFLAGS = -fPIC -std=c89 -O3 -march=native -Wall -Wextra -pedantic
 CXXFLAGS = -fPIC -O3 -march=native -Wall -Wextra -pedantic
+endif # debug
 LDFLAGS = -shared
 LIBNAME=libsimdcomp.so.0.0.3
 all:  unit unit_chars $(LIBNAME)
