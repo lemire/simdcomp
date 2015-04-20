@@ -10,8 +10,8 @@
 
 
 void benchmarkSelect() {
-	uint32_t buffer[128];
-	uint32_t backbuffer[128];
+    uint32_t buffer[128];
+    uint32_t backbuffer[128];
     uint32_t initial = 33;
     uint32_t b;
     clock_t S1, S2, S3;
@@ -210,4 +210,5 @@ void benchmarkSearch() {
 int main() {
 	benchmarkSearch();
 	benchmarkSelect();
+        return 0;
 }

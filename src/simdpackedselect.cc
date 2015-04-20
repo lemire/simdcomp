@@ -14,19 +14,7 @@ const static __m128i shuffle_mask[4] = {
     };
 
 uint32_t branchlessextract (__m128i out, int i)  {
-	assert(i>=0);
-	assert(i<4);
   return _mm_cvtsi128_si32(_mm_shuffle_epi8(out,shuffle_mask[i]));
-}
-uint32_t branchingextract (__m128i out, int i)  {
-              switch (i) {
-                case 0: return _mm_extract_epi32(out, 0);
-                case 1: return _mm_extract_epi32(out, 1);
-                case 2: return _mm_extract_epi32(out, 2);
-                case 3: return _mm_extract_epi32(out, 3);
-                default: assert("problem");
-              }
-              return 0;
 }
 
 #define PrefixSum(ret, curr, prev) do {                                     \
@@ -35,24 +23,10 @@ uint32_t branchingextract (__m128i out, int i)  {
     ret = _mm_add_epi32(_tmp2, _mm_shuffle_epi32(prev, 0xff));              \
 	} while (0)
 
-#define CHECK_AND_INCREMENTNew(i, out, slot)                                   \
-            i += 4;                                                         \
-            if (i > slot) {                                                \
-              return branchlessextract (out, slot - (i - 4)); \
-            }
-
-
-
 #define CHECK_AND_INCREMENT(i, out, slot)                                   \
             i += 4;                                                         \
-            if (i > slot) {                                                \
-              switch (slot - (i - 4)) {                                     \
-                case 0: return _mm_extract_epi32(out, 0);                   \
-                case 1: return _mm_extract_epi32(out, 1);                   \
-                case 2: return _mm_extract_epi32(out, 2);                   \
-                case 3: return _mm_extract_epi32(out, 3);                   \
-                default: assert((slot - (i - 4)<4) && (slot - (i - 4)>=0));                      \
-              }                                                             \
+            if (i > slot) {                                                 \
+              return branchlessextract (out, slot - (i - 4));                \
             }
 
 
