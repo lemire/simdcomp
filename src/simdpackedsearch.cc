@@ -7897,30 +7897,19 @@ simdsearchd1(uint32_t initvalue, const __m128i *in, uint32_t bit, int length,
 
 
 
-
 #undef CHECK_AND_INCREMENT
 
 // perform a lower-bound search for |key| in |out|; the resulting uint32
 // is stored in |*presult|.
 #define CHECK_AND_INCREMENT(i, out, length, key, presult)                   \
       do {                                                                  \
-     /* printf("key ?: %u\n", key);                       */                \
-     /* printf("key 0: %u\n", _mm_extract_epi32(out, 0)); */                \
-     /* printf("key 1: %u\n", _mm_extract_epi32(out, 1)); */                \
-     /* printf("key 2: %u\n", _mm_extract_epi32(out, 2)); */                \
-     /* printf("key 3: %u\n", _mm_extract_epi32(out, 3)); */                \
-                           \
         __m128i tmpout = _mm_sub_epi32(out, conversion);                    \
-        uint32_t mask = _mm_movemask_ps((__m128)_mm_or_si128(               \
-                                      _mm_cmpeq_epi32(tmpout, key4),        \
-                                      _mm_cmpgt_epi32(tmpout, key4)));      \
-        /* mask has value 1<<i where i is the correct index */              \
-        if (mask != 0) {                                                    \
-          const __m128i p = _mm_shuffle_epi8(out, shuffle_mask[mask]);      \
-          *presult = _mm_cvtsi128_si32(p);                                  \
-          int offset = __builtin_ctz(mask);                                 \
+        uint32_t mask = _mm_movemask_ps((__m128)  _mm_cmplt_epi32(tmpout, key4)); \
+        if (mask != 15) {                                                        \
+          const __m128i p = _mm_shuffle_epi8(out, shuffle_mask[mask ^ 15]);      \
+          *presult = _mm_cvtsi128_si32(p);                                        \
+          int offset = __builtin_ctz(mask ^ 15);                                 \
           int remaining = length - i;                                       \
-       /* printf("mask is %x\n", mask); */                                  \
           if (offset < remaining)                                           \
             return (i + offset);                                            \
         }                                                                   \
