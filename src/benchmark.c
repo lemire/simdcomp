@@ -116,7 +116,7 @@ void benchmarkSearch() {
     uint32_t out[128];
     uint32_t result, initial = 0;
     uint32_t b, i;
-    clock_t S1, S2, S3;
+    clock_t S1, S2, S3, S4;
 
     printf("benchmarking search \n");
 
@@ -182,7 +182,22 @@ void benchmarkSearch() {
             }
         }
         S3 = clock();
-        printf("bit width = %d, fast search function time = %lu, naive time = %lu  \n", b, (S2-S1), (S3-S2));
+        for (i = 0; i < 128 * 10; i++) {
+
+            int pos;
+            uint32_t pseudorandomkey  =  buffer[i%128];
+            pos = newsimdsearchd1(initial, (__m128i *)out, b, 128,
+                               pseudorandomkey, &result);
+            if((result < pseudorandomkey) || (buffer[pos] != result)) {
+                printf("bug A.\n");
+            } else if (pos > 0) {
+                if(buffer[pos-1] >= pseudorandomkey)
+                    printf("bug B.\n");
+            }
+        }
+        S4 = clock();
+
+        printf("bit width = %d, fast search function time = %lu, naive time = %lu , experimental time = %lu  \n", b, (S2-S1), (S3-S2), (S4-S3) );
     }
 }
 

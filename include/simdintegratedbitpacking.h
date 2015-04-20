@@ -37,6 +37,8 @@ void simdunpackd1(uint32_t initvalue, const __m128i *  in,uint32_t *  out, const
  * length is returned */
 int simdsearchd1(uint32_t initvalue, const __m128i *in, uint32_t bit,
                 int length, uint32_t key, uint32_t *presult);
+int newsimdsearchd1(uint32_t initvalue, const __m128i *in, uint32_t bit,
+                int length, uint32_t key, uint32_t *presult);
 
 /* returns the value stored at the specified "slot". */
 uint32_t simdselectd1(uint32_t initvalue, const __m128i *in, uint32_t bit,
