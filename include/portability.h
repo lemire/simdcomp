@@ -55,18 +55,19 @@ typedef unsigned char uint8_t;
 #endif
 
 #if defined(_MSC_VER)
-#include <intrin.h>
-SIMDCOMP_ALWAYS_INLINE uint32_t __builtin_ctz(uint32_t bits)
-{
-	unsigned long index;
-
-	if (!_BitScanForward(&index, bits)) {
-		/* undefined behavior */
-		return 32;
-	}
-
-	return (uint32_t)index;
-}
+# include <intrin.h>
+/* 64-bit needs extending */
+# define SIMDCOMP_CTZ(result, mask) do { \
+		unsigned long index; \
+		if (!_BitScanForward(&(index), (mask))) { \
+			(result) = 32U; \
+		} else { \
+			(result) = (uint32_t)(index); \
+		} \
+	} while (0)
+#else
+# define SIMDCOMP_CTZ(result, mask) \
+	result = __builtin_ctz(mask)
 #endif
 
 #endif /* SIMDBITCOMPAT_H_ */
