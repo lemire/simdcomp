@@ -37,7 +37,7 @@ LDFLAGS = /nologo /LTCG /DYNAMICBASE /incremental:no /debug /opt:ref,icf
 !ENDIF
 
 LIB_OBJS = simdbitpacking.obj simdintegratedbitpacking.obj simdcomputil.obj \
-	simdpackedsearch.obj src/simdpackedselect.obj
+	simdpackedsearch.obj simdpackedselect.obj
 
 
 all: lib dll unit unit_chars example
