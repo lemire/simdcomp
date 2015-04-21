@@ -27,15 +27,7 @@
         _mm_set_epi8(15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0),
     };*/
 
-#if defined(_MSC_VER)
-#define ALIGNED(x) __declspec(align(x))
-#else
-#if defined(__GNUC__)
-#define ALIGNED(x) __attribute__ ((aligned(x)))
-#endif
-#endif
-
-static int8_t shuffle_mask_bytes[16 * 16 ]  ALIGNED(16) = {
+ALIGNED(16) static int8_t shuffle_mask_bytes[256] = {
         0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
         0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
         4, 5, 6, 7, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
