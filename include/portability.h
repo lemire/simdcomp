@@ -47,10 +47,10 @@ typedef unsigned int uint32_t;
 typedef unsigned char uint8_t;
 
 #if defined(_MSC_VER)
-#define ALIGNED(x) __declspec(align(x))
+#define SIMDCOMP_ALIGNED(x) __declspec(align(x))
 #else
 #if defined(__GNUC__)
-#define ALIGNED(x) __attribute__ ((aligned(x)))
+#define SIMDCOMP_ALIGNED(x) __attribute__ ((aligned(x)))
 #endif
 #endif
 
