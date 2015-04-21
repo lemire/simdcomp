@@ -11,6 +11,8 @@
 #ifdef _MSC_VER
 # include <windows.h>
 
+__int64 freq;
+
 typedef __int64 time_snap_t;
 
 static time_snap_t time_snap(void)
@@ -19,7 +21,7 @@ static time_snap_t time_snap(void)
 
 	QueryPerformanceCounter((LARGE_INTEGER *)&now);
 
-	return now;
+	return (__int64)((now*1000000)/freq);
 }
 # define TIME_SNAP_FMT "%I64d"
 #else
@@ -223,6 +225,9 @@ void benchmarkSearch() {
 
 
 int main() {
+#ifdef _MSC_VER
+    QueryPerformanceFrequency((LARGE_INTEGER *)&freq);
+#endif
     benchmarkSearch();
     benchmarkSelect();
     return 0;
