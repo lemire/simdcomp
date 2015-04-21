@@ -54,5 +54,20 @@ typedef unsigned char uint8_t;
 #endif
 #endif
 
+#if defined(_MSC_VER)
+#include <intrin.h>
+SIMDCOMP_ALWAYS_INLINE uint32_t __builtin_ctz(uint32_t bits)
+{
+	unsigned long index;
+
+	if (!_BitScanForward(&index, bits)) {
+		/* undefined behavior */
+		return 32;
+	}
+
+	return (uint32_t)index;
+}
+#endif
+
 #endif /* SIMDBITCOMPAT_H_ */
 
