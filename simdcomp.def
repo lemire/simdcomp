@@ -8,3 +8,6 @@ EXPORTS
 	simdpackd1
 	simdpackwithoutmaskd1
 	simdunpackd1
+	simdsearchd1
+	simdsearchwithlengthd1
+	simdselectd1
