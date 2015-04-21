@@ -43,7 +43,8 @@ all: lib dll unit unit_chars example
 
 
 $(LIB_OBJS):
-	$(CC) $(INC) $(CFLAGS) /c src/simdbitpacking.c src/simdintegratedbitpacking.c src/simdcomputil.c
+	$(CC) $(INC) $(CFLAGS) /c src/simdbitpacking.c src/simdintegratedbitpacking.c src/simdcomputil.c \
+		src/simdpackedsearch.c src/simdpackedselect.c
 
 lib: $(LIB_OBJS)
 	$(AR) $(ARFLAGS) /OUT:simdcomp_a.lib $(LIB_OBJS)
@@ -67,6 +68,10 @@ unit_chars: lib
 example: lib
 	$(CC) $(INC) $(CFLAGS) /c example.c
 	$(LINK) $(LDFLAGS) /OUT:example.exe example.obj simdcomp_a.lib
+
+unit: lib
+	$(CC) $(INC) $(CFLAGS) /c src/benchmark.c
+	$(LINK) $(LDFLAGS) /OUT:benchmark.exe benchmark.obj simdcomp_a.lib
 
 clean:
 	del /Q *.obj
