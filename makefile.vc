@@ -40,7 +40,7 @@ LIB_OBJS = simdbitpacking.obj simdintegratedbitpacking.obj simdcomputil.obj \
 	simdpackedsearch.obj simdpackedselect.obj
 
 
-all: lib dll unit unit_chars example
+all: lib dll unit unit_chars example benchmark
 
 
 $(LIB_OBJS):
@@ -70,7 +70,7 @@ example: lib
 	$(CC) $(INC) $(CFLAGS) /c example.c
 	$(LINK) $(LDFLAGS) /OUT:example.exe example.obj simdcomp_a.lib
 
-unit: lib
+benchmark: lib
 	$(CC) $(INC) $(CFLAGS) /c src/benchmark.c
 	$(LINK) $(LDFLAGS) /OUT:benchmark.exe benchmark.obj simdcomp_a.lib
 
