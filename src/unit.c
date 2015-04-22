@@ -274,7 +274,7 @@ int test_simdpackedselect_advanced() {
     	uint32_t out[128];
         /* initialize the buffer */
         for (i = 0; i < 128; i++) {
-            buffer[i] =  ((uint32_t)(1431655765 * i + 0xFFFFFFFF)) ;
+            buffer[i] =  ((uint32_t)(165576 * i)) ;
             if(b < 32) buffer[i] %= (1<<b);
         }
         for (i = 0; i < 128; i++) {
