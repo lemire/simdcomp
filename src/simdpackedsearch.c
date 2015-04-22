@@ -2,6 +2,7 @@
  * This code is released under a BSD License.
  */
 #include <smmintrin.h>
+#include <stdint.h>
 #include "simdintegratedbitpacking.h"
 
 
@@ -34,7 +35,7 @@
 #endif
 #endif
 
-const static int8_t shuffle_mask_bytes[16 * 16 ]  ALIGNED(16) = {
+static int8_t shuffle_mask_bytes[16 * 16 ]  ALIGNED(16) = {
         0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
         0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
         4, 5, 6, 7, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
