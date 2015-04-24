@@ -4,4 +4,8 @@ compiler:
   - gcc
   - clang
 
+branches:
+  only:
+    - master
+
 script: make && ./unit
