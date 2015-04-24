@@ -27,15 +27,7 @@
         _mm_set_epi8(15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0),
     };*/
 
-#if defined(_MSC_VER)
-#define ALIGNED(x) __declspec(align(x))
-#else
-#if defined(__GNUC__)
-#define ALIGNED(x) __attribute__ ((aligned(x)))
-#endif
-#endif
-
-static int8_t shuffle_mask_bytes[16 * 16 ]  ALIGNED(16) = {
+SIMDCOMP_ALIGNED(16) static int8_t shuffle_mask_bytes[256] = {
         0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
         0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
         4, 5, 6, 7, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
@@ -87,11 +79,12 @@ static int lower_bound(uint32_t * A, uint32_t key, int imin, int imax)
 #define CHECK_AND_INCREMENT_WITH_LENGTH(i, out, length, key, presult)                   \
       do {                                                                  \
         __m128i tmpout = _mm_sub_epi32(out, conversion);                    \
-        uint32_t mask = _mm_movemask_ps((__m128)  _mm_cmplt_epi32(tmpout, key4)); \
+        uint32_t mask = _mm_movemask_ps(_mm_castsi128_ps(_mm_cmplt_epi32(tmpout, key4))); \
         if (mask != 15) {                                                        \
           const __m128i p = _mm_shuffle_epi8(out, shuffle_mask[mask ^ 15]);      \
-          int offset = __builtin_ctz(mask ^ 15);                                 \
+          int offset;                                                      \
           int remaining = length - i;                                       \
+          SIMDCOMP_CTZ(offset, mask ^ 15); \
           *presult = _mm_cvtsi128_si32(p);                                  \
           if (offset < remaining)                                           \
             return (i + offset);                                            \
@@ -7996,10 +7989,11 @@ simdsearchwithlengthd1(uint32_t initvalue, const __m128i *in, uint32_t bit, int 
 #define CHECK_AND_INCREMENT(i, out,  key, presult)                   \
       do {                                                                  \
         __m128i tmpout = _mm_sub_epi32(out, conversion);                    \
-        uint32_t mask = _mm_movemask_ps((__m128)  _mm_cmplt_epi32(tmpout, key4)); \
+        uint32_t mask = _mm_movemask_ps(_mm_castsi128_ps(_mm_cmplt_epi32(tmpout, key4))); \
         if (mask != 15) {                                                        \
           __m128i p = _mm_shuffle_epi8(out, shuffle_mask[mask ^ 15]);      \
-          int offset = __builtin_ctz(mask ^ 15);                                 \
+          int offset; \
+          SIMDCOMP_CTZ(offset, mask ^ 15);                                 \
           *presult = _mm_cvtsi128_si32(p);                                        \
           return (i + offset);                                              \
         }                                                                   \

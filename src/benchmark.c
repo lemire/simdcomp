@@ -8,13 +8,35 @@
 
 #include "simdcomp.h"
 
+#ifdef _MSC_VER
+# include <windows.h>
+
+__int64 freq;
+
+typedef __int64 time_snap_t;
+
+static time_snap_t time_snap(void)
+{
+	__int64 now;
+
+	QueryPerformanceCounter((LARGE_INTEGER *)&now);
+
+	return (__int64)((now*1000000)/freq);
+}
+# define TIME_SNAP_FMT "%I64d"
+#else
+# define time_snap clock
+# define TIME_SNAP_FMT "%lu"
+typedef clock_t time_snap_t;
+#endif
+
 
 void benchmarkSelect() {
     uint32_t buffer[128];
     uint32_t backbuffer[128];
     uint32_t initial = 33;
     uint32_t b;
-    clock_t S1, S2, S3;
+    time_snap_t S1, S2, S3;
     int i;
     printf("benchmarking select \n");
 
@@ -46,18 +68,18 @@ void benchmarkSelect() {
         /* delta-encode to 'i' bits */
         simdpackwithoutmaskd1(initial, buffer, (__m128i *)out, b);
 
-        S1 = clock();
+        S1 = time_snap();
         for (i = 0; i < 128 * 10; i++) {
             uint32_t valretrieved = simdselectd1(initial, (__m128i *)out, b, (uint32_t)i % 128);
             assert(valretrieved == buffer[i%128]);
         }
-        S2 = clock();
+        S2 = time_snap();
         for (i = 0; i < 128 * 10; i++) {
             simdunpackd1(initial,  (__m128i *)out, backbuffer, b);
             assert(backbuffer[i % 128] == buffer[i % 128]);
         }
-        S3 = clock();
-        printf("bit width = %d, fast select function time = %lu, naive time = %lu  \n", b, (S2-S1), (S3-S2));
+        S3 = time_snap();
+        printf("bit width = %d, fast select function time = " TIME_SNAP_FMT ", naive time = " TIME_SNAP_FMT "  \n", b, (S2-S1), (S3-S2));
     }
 }
 
@@ -116,7 +138,7 @@ void benchmarkSearch() {
     uint32_t out[128];
     uint32_t result, initial = 0;
     uint32_t b, i;
-    clock_t S1, S2, S3, S4;
+    time_snap_t S1, S2, S3, S4;
 
     printf("benchmarking search \n");
 
@@ -152,7 +174,7 @@ void benchmarkSearch() {
         for (i = 0; i < 128; i++) {
             assert(buffer[i] == backbuffer[i]);
          }
-        S1 = clock();
+        S1 = time_snap();
         for (i = 0; i < 128 * 10; i++) {
 
             int pos;
@@ -166,7 +188,7 @@ void benchmarkSearch() {
                     printf("bug B.\n");
             }
         }
-        S2 = clock();
+        S2 = time_snap();
         for (i = 0; i < 128 * 10; i++) {
             int pos;
             uint32_t pseudorandomkey  =  buffer[i%128];
@@ -181,7 +203,7 @@ void benchmarkSearch() {
                     printf("bug D.\n");
             }
         }
-        S3 = clock();
+        S3 = time_snap();
         for (i = 0; i < 128 * 10; i++) {
 
             int pos;
@@ -195,14 +217,17 @@ void benchmarkSearch() {
                     printf("bug B.\n");
             }
         }
-        S4 = clock();
+        S4 = time_snap();
 
-        printf("bit width = %d, fast search function time = %lu, naive time = %lu , fast with length time = %lu  \n", b, (S2-S1), (S3-S2), (S4-S3) );
+        printf("bit width = %d, fast search function time = " TIME_SNAP_FMT ", naive time = " TIME_SNAP_FMT " , fast with length time = " TIME_SNAP_FMT "  \n", b, (S2-S1), (S3-S2), (S4-S3) );
     }
 }
 
 
 int main() {
+#ifdef _MSC_VER
+    QueryPerformanceFrequency((LARGE_INTEGER *)&freq);
+#endif
     benchmarkSearch();
     benchmarkSelect();
     return 0;
