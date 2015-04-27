@@ -39,12 +39,12 @@ static uint32_t maxbitas32int(const __m128i accumulator) {
 uint32_t simdmaxbitsd1(uint32_t initvalue, const uint32_t * in) {
     __m128i  initoffset = _mm_set1_epi32 (initvalue);
     const __m128i* pin = (const __m128i*)(in);
-    __m128i newvec = _mm_load_si128(pin);
+    __m128i newvec = _mm_loadu_si128(pin);
     __m128i accumulator = Delta(newvec , initoffset);
     __m128i oldvec = newvec;
     uint32_t k = 1;
     for(; 4*k < SIMDBlockSize; ++k) {
-        newvec = _mm_load_si128(pin+k);
+        newvec = _mm_loadu_si128(pin+k);
         accumulator = _mm_or_si128(accumulator,Delta(newvec , oldvec));
         oldvec = newvec;
     }
@@ -80,7 +80,7 @@ uint32_t simdmaxbitsd1_length(uint32_t initvalue, const uint32_t * in,
         newvec = _mm_setr_epi32(in[0], in[1], in[2], in[2]);
         break;
       default:
-        newvec = _mm_load_si128(pin);
+        newvec = _mm_loadu_si128(pin);
         break;
     }
     accumulator = Delta(newvec, initoffset);
@@ -88,7 +88,7 @@ uint32_t simdmaxbitsd1_length(uint32_t initvalue, const uint32_t * in,
 
     /* process 4 integers and build an accumulator */
     while (k * 4 + 4 <= length) {
-        newvec = _mm_load_si128(pin + k);
+        newvec = _mm_loadu_si128(pin + k);
         accumulator = _mm_or_si128(accumulator, Delta(newvec, oldvec));
         oldvec = newvec;
         k++;
