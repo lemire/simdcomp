@@ -1,13 +1,14 @@
 The SIMDComp library 
 ====================
+[![Build Status](https://travis-ci.org/lemire/simdcomp.png)](https://travis-ci.org/lemire/simdcomp)
 
 A simple C library for compressing lists of integers using binary packing and SIMD instructions.
+The assumption is either that you have a list of 32-bit integers where most of them are small, or a list of 32-bit integers where differences between successive integers are small. No software is able to reliably compress an array of random numbers.
 
 This library can decode at least 4 billions of compressed integers per second on most
 desktop or laptop processors. That is, it can decompress data at a rate of 15 GB/s.
 This is significantly faster than generic codecs like gzip, LZO, Snappy or LZ4.
 
-The assumption is either that you have a list of 32-bit integers where most of them are small, or a list of 32-bit integers where differences between successive integers are small. No software is able to reliably compress an array of random numbers.
 
 What is it for?
 -------------
@@ -78,11 +79,9 @@ https://github.com/lemire/SIMDCompressionAndIntersection
 References
 ------------
 
-Daniel Lemire and Leonid Boytsov, Decoding billions of integers per second through vectorization, 
-Software: Practice & Experience 45 (1), 2015. 
-http://dx.doi.org/10.1002/spe.2203
+* Daniel Lemire, Leonid Boytsov, Nathan Kurz, SIMD Compression and the Intersection of Sorted Integers, Software Practice & Experience (to appear) http://arxiv.org/abs/1401.6399
+* Daniel Lemire and Leonid Boytsov, Decoding billions of integers per second through vectorization, Software Practice & Experience 45 (1), 2015.  http://arxiv.org/abs/1209.2137 http://onlinelibrary.wiley.com/doi/10.1002/spe.2203/abstract
+* Jeff Plaisance, Nathan Kurz, Daniel Lemire, Vectorized VByte Decoding, International Symposium on Web Algorithms 2015, 2015. http://arxiv.org/abs/1503.07387
+* Wayne Xin Zhao, Xudong Zhang, Daniel Lemire, Dongdong Shan, Jian-Yun Nie, Hongfei Yan, Ji-Rong Wen, A General SIMD-based Approach to Accelerating Compression Algorithms, ACM Transactions on Information Systems 33 (3), 2015. http://arxiv.org/abs/1502.01916
 
-Daniel Lemire, Leonid Boytsov, Nathan Kurz, SIMD Compression and the
-Intersection of Sorted Integers
-http://arxiv.org/abs/1401.6399
 

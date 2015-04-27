@@ -4,6 +4,8 @@
 #ifndef SIMDBITCOMPAT_H_
 #define SIMDBITCOMPAT_H_
 
+#include <iso646.h> /* mostly for Microsoft compilers */
+#include <stdint.h> /* part of Visual Studio 2010 and better */
 
 #if SIMDCOMP_DEBUG
 # define SIMDCOMP_ALWAYS_INLINE inline
@@ -43,8 +45,12 @@
 # endif
 #endif
 
+/*
+ * typedefs really defeat the purpose of uint32_t and uint8_t. Modern C compilers
+ * should not need that:
 typedef unsigned int uint32_t;
 typedef unsigned char uint8_t;
+*/
 
 #if defined(_MSC_VER)
 #define SIMDCOMP_ALIGNED(x) __declspec(align(x))
