@@ -179,7 +179,8 @@ void benchmarkSearch() {
 
             int pos;
             uint32_t pseudorandomkey  =  buffer[i%128];
-            pos = simdsearchd1(initial, (__m128i *)out, b,
+            __m128i vecinitial = _mm_set1_epi32(initial);
+            pos = simdsearchd1(&vecinitial, (__m128i *)out, b,
                                pseudorandomkey, &result);
             if((result < pseudorandomkey) || (buffer[pos] != result)) {
                 printf("bug A.\n");
