@@ -3,7 +3,7 @@ The SIMDComp library
 [![Build Status](https://travis-ci.org/lemire/simdcomp.png)](https://travis-ci.org/lemire/simdcomp)
 
 A simple C library for compressing lists of integers using binary packing and SIMD instructions.
-The assumption is either that you have a list of 32-bit integers where most of them are small, or a list of 32-bit integers where differences between successive integers are small. No software is able to reliably compress an array of random numbers.
+The assumption is either that you have a list of 32-bit integers where most of them are small, or a list of 32-bit integers where differences between successive integers are small. No software is able to reliably compress an array of 32-bit random numbers.
 
 This library can decode at least 4 billions of compressed integers per second on most
 desktop or laptop processors. That is, it can decompress data at a rate of 15 GB/s.
