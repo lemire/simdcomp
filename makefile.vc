@@ -23,6 +23,13 @@ AR=lib.exe
 LINK=link.exe
 !ENDIF
 
+!IFNDEF PGO
+PGO=no
+!ENDIF
+
+!IFNDEF PGI
+PGI=no
+!ENDIF
 
 INC = /Iinclude
 
@@ -36,11 +43,21 @@ ARFLAGS = /nologo /LTCG
 LDFLAGS = /nologo /LTCG /DYNAMICBASE /incremental:no /debug /opt:ref,icf
 !ENDIF
 
+!IF "$(PGI)"=="yes"
+LDFLAGS = $(LDFLAGS) /ltcg:pgi
+!ENDIF
+
+!IF "$(PGO)"=="yes"
+LDFLAGS = $(LDFLAGS) /ltcg:pgo
+!ENDIF
+
 LIB_OBJS = simdbitpacking.obj simdintegratedbitpacking.obj simdcomputil.obj \
 	simdpackedsearch.obj simdpackedselect.obj
 
 
 all: lib dll unit unit_chars example benchmark
+# need some good use case scenario to train the instrumented build, using the benchmarks for now
+	@if "$(PGI)"=="yes" benchmark.exe >nul 2>&1
 
 
 $(LIB_OBJS):
