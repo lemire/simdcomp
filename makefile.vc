@@ -56,8 +56,9 @@ LIB_OBJS = simdbitpacking.obj simdintegratedbitpacking.obj simdcomputil.obj \
 
 
 all: lib dll dynunit unit_chars example benchmark
-# need some good use case scenario to train the instrumented build, using the benchmarks for now
+# need some good use case scenario to train the instrumented build
 	@if "$(PGI)"=="yes" benchmark.exe >nul 2>&1
+	@if "$(PGI)"=="yes" example.exe >nul 2>&1
 
 
 $(LIB_OBJS):
@@ -96,4 +97,6 @@ clean:
 	del /Q *.lib
 	del /Q *.exe
 	del /Q *.dll
+	del /Q *.pgc
+	del /Q *.pgd
 
