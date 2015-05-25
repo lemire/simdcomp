@@ -19,7 +19,7 @@ format. It is up to the (sophisticated) user to create a compressed format.
 Requirements
 -------------
 
-- Your processor should support SSE2 (Pentium4 or better)
+- Your processor should support SSE4.1 (It is supported by most Intel and AMD processors released since 2008.)
 - C99 compliant compiler (GCC is assumed)
 - A Linux-like distribution is assumed by the makefile
 
