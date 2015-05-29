@@ -1,4 +1,9 @@
+/**
+ * This code is released under a BSD License.
+ */
+
 #include "simdcomputil.h"
+#include <smmintrin.h>
 #include <assert.h>
 
 #define Delta(curr, prev) \
@@ -19,14 +24,7 @@ uint32_t bits(const uint32_t v) {
 #endif
 }
 
-SIMDCOMP_PURE uint32_t maxbits(const uint32_t * begin) {
-    uint32_t accumulator = 0;
-    const uint32_t * k = begin;
-    for (; k != begin + SIMDBlockSize; ++k) {
-        accumulator |= *k;
-    }
-    return bits(accumulator);
-}
+
 
 static uint32_t maxbitas32int(const __m128i accumulator) {
 	const __m128i _tmp1 = _mm_or_si128(_mm_srli_si128(accumulator, 8), accumulator); /* (A,B,C,D) xor (0,0,A,B) = (A,B,C xor A,D xor B)*/
@@ -35,23 +33,72 @@ static uint32_t maxbitas32int(const __m128i accumulator) {
 	return bits(ans);
 }
 
+SIMDCOMP_PURE uint32_t maxbits(const uint32_t * begin) {
+	    const __m128i* pin = (const __m128i*)(begin);
+	    __m128i accumulator = _mm_loadu_si128(pin);
+	    uint32_t k = 1;
+	    for(; 4*k < SIMDBlockSize; ++k) {
+	    	__m128i newvec = _mm_loadu_si128(pin+k);
+	        accumulator = _mm_or_si128(accumulator,newvec);
+	    }
+	    return maxbitas32int(accumulator);
+}
 static uint32_t orasint(const __m128i accumulator) {
 	const __m128i _tmp1 = _mm_or_si128(_mm_srli_si128(accumulator, 8), accumulator); /* (A,B,C,D) xor (0,0,A,B) = (A,B,C xor A,D xor B)*/
 	const __m128i _tmp2 = _mm_or_si128(_mm_srli_si128(_tmp1, 4), _tmp1); /*  (A,B,C xor A,D xor B) xor  (0,0,0,C xor A)*/
 	return  _mm_cvtsi128_si32(_tmp2);
 }
 
+static uint32_t minasint(const __m128i accumulator) {
+	const __m128i _tmp1 = _mm_min_epu32(_mm_srli_si128(accumulator, 8), accumulator); /* (A,B,C,D) xor (0,0,A,B) = (A,B,C xor A,D xor B)*/
+	const __m128i _tmp2 = _mm_min_epu32(_mm_srli_si128(_tmp1, 4), _tmp1); /*  (A,B,C xor A,D xor B) xor  (0,0,0,C xor A)*/
+	return  _mm_cvtsi128_si32(_tmp2);
+}
+
+
+uint32_t simdmin(const uint32_t * in) {
+    const __m128i* pin = (const __m128i*)(in);
+    __m128i accumulator =  _mm_loadu_si128(pin);
+     uint32_t k = 1;
+     for(; 4*k < SIMDBlockSize; ++k) {
+    	 __m128i newvec = _mm_loadu_si128(pin+k);
+         accumulator = _mm_min_epu32(accumulator,newvec);
+     }
+     return minasint(accumulator);
+}
+
+uint32_t simdmin_length(const uint32_t * in, uint32_t length) {
+	uint32_t currentmin = 0;
+	uint32_t lengthdividedby4 = length / 4;
+	uint32_t offset = lengthdividedby4 * 4;
+	uint32_t k;
+
+	if (lengthdividedby4 > 1) {
+		const __m128i* pin = (const __m128i*)(in);
+		__m128i accumulator = _mm_loadu_si128(pin);
+		uint32_t k = 1;
+		for(; 4*k < lengthdividedby4 * 4; ++k) {
+			__m128i newvec = _mm_loadu_si128(pin+k);
+			accumulator = _mm_min_epu32(accumulator,newvec);
+		}
+		currentmin = minasint(accumulator);
+	}
+	for (k = offset; k < length; ++k)
+		if (in[k] < currentmin)
+			currentmin = in[k];
+	return currentmin;
+}
+
+
 uint32_t simdmaxbitsFOR(uint32_t minvalue, const uint32_t * in) {
     __m128i  initoffset = _mm_set1_epi32 (minvalue);
     const __m128i* pin = (const __m128i*)(in);
     __m128i newvec = _mm_loadu_si128(pin);
     __m128i accumulator = _mm_sub_epi32(newvec , initoffset);
-    __m128i oldvec = newvec;
     uint32_t k = 1;
     for(; 4*k < SIMDBlockSize; ++k) {
         newvec = _mm_loadu_si128(pin+k);
-        accumulator = _mm_or_si128(accumulator,_mm_sub_epi32(newvec , oldvec));
-        oldvec = newvec;
+        accumulator = _mm_or_si128(accumulator,_mm_sub_epi32(newvec , initoffset));
     }
     return maxbitas32int(accumulator);
 }
@@ -67,12 +114,10 @@ uint32_t simdmaxbitsFOR_length(uint32_t minvalue, const uint32_t * in,
 	    const __m128i* pin = (const __m128i*)(in);
 	    __m128i newvec = _mm_loadu_si128(pin);
 	    __m128i accumulator = _mm_sub_epi32(newvec , initoffset);
-	    __m128i oldvec = newvec;
 	    k = 1;
-	    for(; 4*k < SIMDBlockSize; ++k) {
+	    for(; 4*k < 4*lengthdividedby4; ++k) {
 	        newvec = _mm_loadu_si128(pin+k);
-	        accumulator = _mm_or_si128(accumulator,_mm_sub_epi32(newvec , oldvec));
-	        oldvec = newvec;
+	        accumulator = _mm_or_si128(accumulator,_mm_sub_epi32(newvec , initoffset));
 	    }
 	    bigxor = orasint(accumulator);
   }
@@ -80,6 +125,27 @@ uint32_t simdmaxbitsFOR_length(uint32_t minvalue, const uint32_t * in,
 	  bigxor |= (in[k] - minvalue);
   return bits(bigxor);
 }
+
+SIMDCOMP_PURE uint32_t maxbits_length(const uint32_t * in,uint32_t length) {
+	  uint32_t k;
+	  uint32_t lengthdividedby4 = length / 4;
+	  uint32_t offset = lengthdividedby4 * 4;
+	  uint32_t bigxor = 0;
+	  if(lengthdividedby4 > 0) {
+		    const __m128i* pin = (const __m128i*)(in);
+		    __m128i accumulator = _mm_loadu_si128(pin);
+		    k = 1;
+		    for(; 4*k < 4*lengthdividedby4; ++k) {
+		    	__m128i newvec = _mm_loadu_si128(pin+k);
+		        accumulator = _mm_or_si128(accumulator,newvec);
+		    }
+		    bigxor = orasint(accumulator);
+	  }
+	  for(k = offset; k < length; ++k)
+		  bigxor |= in[k];
+	  return bits(bigxor);
+}
+
 
 /* maxbit over 128 integers (SIMDBlockSize) with provided initial value */
 uint32_t simdmaxbitsd1(uint32_t initvalue, const uint32_t * in) {

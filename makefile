@@ -21,7 +21,7 @@ install: $(OBJECTS)
 
 
 
-HEADERS=./include/simdbitpacking.h ./include/simdcomputil.h ./include/simdintegratedbitpacking.h ./include/simdcomp.h 
+HEADERS=./include/simdbitpacking.h ./include/simdcomputil.h ./include/simdintegratedbitpacking.h ./include/simdcomp.h ./include/simdfor.h 
 
 uninstall:
 	for h in $(HEADERS) ; do rm  /usr/local/$$h; done
@@ -31,11 +31,15 @@ uninstall:
 
 
 OBJECTS= simdbitpacking.o simdintegratedbitpacking.o simdcomputil.o \
-		 simdpackedsearch.o simdpackedselect.o
+		 simdpackedsearch.o simdpackedselect.o simdfor.o
 
 $(LIBNAME): $(OBJECTS)
 	$(CC) $(CFLAGS) -o $(LIBNAME) $(OBJECTS)  $(LDFLAGS) 
 
+
+
+simdfor.o: ./src/simdfor.c $(HEADERS)
+	$(CC) $(CFLAGS) -c ./src/simdfor.c -Iinclude  
 
 
 simdcomputil.o: ./src/simdcomputil.c $(HEADERS)

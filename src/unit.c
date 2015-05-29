@@ -67,6 +67,46 @@ int test() {
     return 0;
 }
 
+int testFOR() {
+    int N = 5000 * SIMDBlockSize, gap;
+    __m128i * buffer = malloc(SIMDBlockSize * sizeof(uint32_t));
+    uint32_t * datain = malloc(N * sizeof(uint32_t));
+    uint32_t * backbuffer = malloc(SIMDBlockSize * sizeof(uint32_t));
+    for (gap = 1; gap <= 387420489; gap *= 3) {
+        int k;
+        printf(" gap = %u \n", gap);
+        for (k = 0; k < N; ++k)
+            datain[k] = k * gap;
+        for (k = 0; k * SIMDBlockSize < N; ++k) {
+            int j;
+            uint32_t tmin = simdmin_length(datain + k * SIMDBlockSize,SIMDBlockSize);
+       	    /* we compute the bit width */
+           // printf("min is %u expected %u \n",tmin,datain[k * SIMDBlockSize]);
+            const uint32_t b  = simdmaxbitsFOR(tmin,datain + k * SIMDBlockSize);
+
+
+            /* we read 128 integers at "datain + k * SIMDBlockSize" and
+               write b 128-bit vectors at "buffer" */
+            simdpackFOR(tmin,datain + k * SIMDBlockSize, buffer, b);
+
+            /* we read back b1 128-bit vectors at "buffer" and write 128 integers at backbuffer */
+            simdunpackFOR(tmin,buffer, backbuffer, b);/* uncompressed */
+            for (j = 0; j < SIMDBlockSize; ++j) {
+            	//printf("j = %u expected = %u got = %u\n",j,datain[k * SIMDBlockSize + j],backbuffer[j]);
+                if (backbuffer[j] != datain[k * SIMDBlockSize + j]) {
+                    printf("bug in simdpackFOR\n");
+                    return -2;
+                }
+            }
+        }
+    }
+    free(buffer);
+    free(datain);
+    free(backbuffer);
+    printf("Code looks good.\n");
+    return 0;
+}
+
 #define MAX 300
 int test_simdmaxbitsd1_length() {
     uint32_t result, buffer[MAX + 1];
@@ -321,6 +361,9 @@ int test_simdpackedselect_advanced() {
 int main() {
     int r;
 
+    r = testFOR();
+    if (r)
+        return r;
     r = test();
     if (r)
         return r;
