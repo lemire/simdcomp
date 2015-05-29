@@ -21,6 +21,19 @@ uint32_t maxbits(const uint32_t * begin);
 
 enum{ SIMDBlockSize = 128};
 
+
+/* like maxbit over 128 integers (SIMDBlockSize) but we substract from
+ all values the  given minvalue (it is recommended that it be the minimal value)
+ */
+uint32_t simdmaxbitsFOR(uint32_t minvalue, const uint32_t * in);
+
+/* like simdmaxbitsFOR, but calculates maxbits over |length| integers
+   with provided minimal value. |length| can be any arbitrary value. */
+uint32_t simdmaxbitsFOR_length(uint32_t minvalue, const uint32_t * in,
+                uint32_t length);
+
+
+
 /* like maxbit over 128 integers (SIMDBlockSize) with provided initial value 
    and using differential coding */
 uint32_t simdmaxbitsd1(uint32_t initvalue, const uint32_t * in);
