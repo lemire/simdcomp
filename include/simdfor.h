@@ -23,6 +23,10 @@ void simdpackFOR(uint32_t initvalue, const uint32_t *  in,__m128i *  out, const 
 void simdunpackFOR(uint32_t initvalue, const __m128i *  in,uint32_t *  out, const uint32_t bit);
 
 
+/* returns the value stored at the specified "slot".
+* */
+uint32_t simdselectFOR(uint32_t initvalue, const __m128i *in, uint32_t bit,
+                int slot);
 #ifdef __cplusplus
 } // extern "C"
 #endif

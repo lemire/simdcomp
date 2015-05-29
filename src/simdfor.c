@@ -14324,5 +14324,32 @@ void simdunpackFOR(uint32_t initvalue, const __m128i *   in, uint32_t * out, con
 }
 
 
+uint32_t simdselectFOR(uint32_t initvalue, const __m128i *in, uint32_t bit,
+                int slot) {
+	const uint32_t * pin = (const uint32_t *) in;
+	if (bit == 32) {
+		/* silly special case */
+		return pin[slot];
+	} else {
+		const int lane = slot % 4; /* we have 4 interleaved lanes */
+		const int bitsinlane = (slot / 4) * bit; /* how many bits in lane */
+		const int firstwordinlane = bitsinlane / 32;
+		const int secondwordinlane = (bitsinlane + bit - 1) / 32;
+		const uint32_t firstpart = pin[4 * firstwordinlane + lane]
+				>> (bitsinlane % 32);
+		const uint32_t mask = (1 << bit) - 1;
+		if (firstwordinlane == secondwordinlane) {
+			/* easy common case*/
+			return initvalue + (firstpart & mask);
+		} else {
+			/* harder case where we need to combine two words */
+			const uint32_t secondpart = pin[4 * firstwordinlane + 4 + lane];
+			const int usablebitsinfirstword = 32 - (bitsinlane % 32);
+			return initvalue
+					+ ((firstpart | (secondpart << usablebitsinfirstword))
+							& mask);
+		}
+	}
 
+}
 

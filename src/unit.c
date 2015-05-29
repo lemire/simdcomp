@@ -72,7 +72,7 @@ int testFOR() {
     __m128i * buffer = malloc(SIMDBlockSize * sizeof(uint32_t));
     uint32_t * datain = malloc(N * sizeof(uint32_t));
     uint32_t * backbuffer = malloc(SIMDBlockSize * sizeof(uint32_t));
-    for (gap = 1; gap <= 387420489; gap *= 3) {
+    for (gap = 1; gap <= 387420489; gap *= 2) {
         int k;
         printf(" gap = %u \n", gap);
         for (k = 0; k < N; ++k)
@@ -81,7 +81,6 @@ int testFOR() {
             int j;
             uint32_t tmin = simdmin_length(datain + k * SIMDBlockSize,SIMDBlockSize);
        	    /* we compute the bit width */
-           // printf("min is %u expected %u \n",tmin,datain[k * SIMDBlockSize]);
             const uint32_t b  = simdmaxbitsFOR(tmin,datain + k * SIMDBlockSize);
 
 
@@ -89,11 +88,17 @@ int testFOR() {
                write b 128-bit vectors at "buffer" */
             simdpackFOR(tmin,datain + k * SIMDBlockSize, buffer, b);
 
+            for (j = 0; j < SIMDBlockSize; ++j) {
+                        uint32_t selectedvalue = simdselectFOR(tmin,buffer,b,j);
+                    	if (selectedvalue != datain[k * SIMDBlockSize + j]) {
+                            printf("bug in simdselectFOR\n");
+                            return -3;
+                        }
+            }
             /* we read back b1 128-bit vectors at "buffer" and write 128 integers at backbuffer */
             simdunpackFOR(tmin,buffer, backbuffer, b);/* uncompressed */
             for (j = 0; j < SIMDBlockSize; ++j) {
-            	//printf("j = %u expected = %u got = %u\n",j,datain[k * SIMDBlockSize + j],backbuffer[j]);
-                if (backbuffer[j] != datain[k * SIMDBlockSize + j]) {
+            	if (backbuffer[j] != datain[k * SIMDBlockSize + j]) {
                     printf("bug in simdpackFOR\n");
                     return -2;
                 }
