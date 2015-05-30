@@ -12,4 +12,10 @@ EXPORTS
 	simdsearchd1
 	simdsearchwithlengthd1
 	simdselectd1
+	simdpackFOR
+	simdselectFOR
+	simdsearchwithlengthFOR
+	simdunpackFOR
+	simdmaxbitsFOR
+	simdmin_length
 

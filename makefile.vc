@@ -52,7 +52,7 @@ LDFLAGS = $(LDFLAGS) /ltcg:pgo
 !ENDIF
 
 LIB_OBJS = simdbitpacking.obj simdintegratedbitpacking.obj simdcomputil.obj \
-	simdpackedsearch.obj simdpackedselect.obj
+	simdpackedsearch.obj simdpackedselect.obj simdfor.obj
 
 
 all: lib dll dynunit unit_chars example benchmark
@@ -64,7 +64,7 @@ all: lib dll dynunit unit_chars example benchmark
 
 $(LIB_OBJS):
 	$(CC) $(INC) $(CFLAGS) /c src/simdbitpacking.c src/simdintegratedbitpacking.c src/simdcomputil.c \
-		src/simdpackedsearch.c src/simdpackedselect.c
+		src/simdpackedsearch.c src/simdpackedselect.c src/simdfor.c
 
 lib: $(LIB_OBJS)
 	$(AR) $(ARFLAGS) /OUT:simdcomp_a.lib $(LIB_OBJS)
