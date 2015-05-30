@@ -14353,3 +14353,23 @@ uint32_t simdselectFOR(uint32_t initvalue, const __m128i *in, uint32_t bit,
 
 }
 
+
+
+
+int simdsearchwithlengthFOR(uint32_t initvalue, const __m128i *in, uint32_t bit,
+                int length, uint32_t key, uint32_t *presult) {
+	int count = length;
+	int begin = 0;
+	uint32_t val;
+	while (count > 0) {
+		int step = count / 2;
+		val = simdselectFOR(initvalue, in, bit, begin + step);
+	    if (val < key) {
+	    	begin += step + 1;
+	    	count -= step + 1;
+	    } else count = step;
+	}
+	*presult = simdselectFOR(initvalue, in, bit, begin);
+	return begin;
+}
+

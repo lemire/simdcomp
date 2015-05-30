@@ -27,6 +27,19 @@ void simdunpackFOR(uint32_t initvalue, const __m128i *  in,uint32_t *  out, cons
 * */
 uint32_t simdselectFOR(uint32_t initvalue, const __m128i *in, uint32_t bit,
                 int slot);
+
+/* searches "bit" 128-bit vectors from "in" (= length<=128 encoded integers) for the first encoded uint32 value
+ * which is >= |key|, and returns its position. It is assumed that the values
+ * stored are in sorted order.
+ * The encoded key is stored in "*presult".
+ * The first length decoded integers, ignoring others. If no value is larger or equal to the key,
+ * length is returned. Length should be no larger than 128.
+ *
+ * If no value is larger or equal to the key,
+* length is returned */
+int simdsearchwithlengthFOR(uint32_t initvalue, const __m128i *in, uint32_t bit,
+                int length, uint32_t key, uint32_t *presult);
+
 #ifdef __cplusplus
 } // extern "C"
 #endif

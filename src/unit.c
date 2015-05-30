@@ -195,6 +195,49 @@ int test_simdpackedsearch() {
     return 0;
 }
 
+int test_simdpackedsearchFOR() {
+    uint32_t buffer[128];
+    uint32_t result = 0;
+    int b;
+    uint32_t i;
+    uint32_t maxv, tmin, tb;
+    uint32_t out[128];
+
+    /* this test creates delta encoded buffers with different bits, then
+     * performs lower bound searches for each key */
+    for (b = 1; b <= 32; b++) {
+        /* initialize the buffer */
+    	maxv = b == 32 ? 0xFFFFFFFF : ((1<<b) - 1);
+        for (i = 0; i < 128; i++)
+            buffer[i] = maxv * (i + 1) / 128;
+
+        tmin  = simdmin_length(buffer,SIMDBlockSize);
+   	    /* we compute the bit width */
+        tb  = simdmaxbitsFOR(tmin,buffer);
+        /* delta-encode to 'i' bits */
+        simdpackFOR(tmin, buffer, (__m128i *)out, tb);
+        printf("simdsearchd1: %d bits\n", b);
+
+        /* now perform the searches */
+        for (i = 0; i < 128; i++) {
+        	assert(buffer[i] == simdselectFOR(tmin, (__m128i *)out, tb,i));
+        }
+
+        for (i = 0; i < 128; i++) {
+            int x = simdsearchwithlengthFOR(tmin, (__m128i *)out, tb,
+                                    128,buffer[i], &result) ;
+            assert(simdselectFOR(tmin, (__m128i *)out, tb,x) == buffer[x]);
+            assert(simdselectFOR(tmin, (__m128i *)out, tb,x) == result);
+            assert(buffer[x] == result);
+            assert(result == buffer[i]);
+            assert(buffer[x] == buffer[i]);
+        }
+    }
+    printf("simdsearchFOR: ok\n");
+    return 0;
+}
+
+
 int test_simdpackedsearch_advanced() {
     uint32_t buffer[128];
     uint32_t backbuffer[128];
@@ -365,6 +408,9 @@ int test_simdpackedselect_advanced() {
 
 int main() {
     int r;
+    r = test_simdpackedsearchFOR();
+    if (r)
+        return r;
 
     r = testFOR();
     if (r)
