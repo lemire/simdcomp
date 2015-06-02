@@ -2,8 +2,8 @@
  * This code is released under a BSD License.
  */
 #include <smmintrin.h>
-#include <stdint.h>
 #include "simdintegratedbitpacking.h"
+#include "portability.h"
 
 
 SIMDCOMP_ALIGNED(16) static int8_t shuffle_mask_bytes[256] = {
