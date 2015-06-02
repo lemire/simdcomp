@@ -31,15 +31,12 @@ uint32_t simdmin(const uint32_t * in);
 /* computes (quickly) the minimal value of the specified number of values */
 uint32_t simdmin_length(const uint32_t * in, uint32_t length);
 
-/* like maxbit over 128 integers (SIMDBlockSize) but we substract from
- all values the  given minvalue (it is recommended that it be the minimal value)
- */
-uint32_t simdmaxbitsFOR(uint32_t minvalue, const uint32_t * in);
 
-/* like simdmaxbitsFOR, but calculates maxbits over |length| integers
-   with provided minimal value. |length| can be any arbitrary value. */
-uint32_t simdmaxbitsFOR_length(uint32_t minvalue, const uint32_t * in,
-                uint32_t length);
+/* computes (quickly) the minimal and maximal value of the specified number of values */
+void simdmaxmin_length(const uint32_t * in, uint32_t length, uint32_t * getmin, uint32_t * getmax);
+
+/* computes (quickly) the minimal and maximal value of the 128 values */
+void simdmaxmin(const uint32_t * in, uint32_t * getmin, uint32_t * getmax);
 
 
 

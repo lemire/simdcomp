@@ -55,6 +55,11 @@ static uint32_t minasint(const __m128i accumulator) {
 	return  _mm_cvtsi128_si32(_tmp2);
 }
 
+static uint32_t maxasint(const __m128i accumulator) {
+	const __m128i _tmp1 = _mm_max_epu32(_mm_srli_si128(accumulator, 8), accumulator); /* (A,B,C,D) xor (0,0,A,B) = (A,B,C xor A,D xor B)*/
+	const __m128i _tmp2 = _mm_max_epu32(_mm_srli_si128(_tmp1, 4), _tmp1); /*  (A,B,C xor A,D xor B) xor  (0,0,0,C xor A)*/
+	return  _mm_cvtsi128_si32(_tmp2);
+}
 
 uint32_t simdmin(const uint32_t * in) {
     const __m128i* pin = (const __m128i*)(in);
@@ -67,13 +72,27 @@ uint32_t simdmin(const uint32_t * in) {
      return minasint(accumulator);
 }
 
+void simdmaxmin(const uint32_t * in, uint32_t * getmin, uint32_t * getmax) {
+    const __m128i* pin = (const __m128i*)(in);
+    __m128i minaccumulator =  _mm_loadu_si128(pin);
+    __m128i maxaccumulator =  minaccumulator;
+    uint32_t k = 1;
+     for(; 4*k < SIMDBlockSize; ++k) {
+    	 __m128i newvec = _mm_loadu_si128(pin+k);
+         minaccumulator = _mm_min_epu32(minaccumulator,newvec);
+         maxaccumulator = _mm_max_epu32(maxaccumulator,newvec);
+     }
+     *getmin = minasint(minaccumulator);
+     *getmax = maxasint(maxaccumulator);
+}
+
+
 uint32_t simdmin_length(const uint32_t * in, uint32_t length) {
-	uint32_t currentmin = 0;
+	uint32_t currentmin = 0xFFFFFFFF;
 	uint32_t lengthdividedby4 = length / 4;
 	uint32_t offset = lengthdividedby4 * 4;
 	uint32_t k;
-
-	if (lengthdividedby4 > 1) {
+	if (lengthdividedby4 > 0) {
 		const __m128i* pin = (const __m128i*)(in);
 		__m128i accumulator = _mm_loadu_si128(pin);
 		uint32_t k = 1;
@@ -89,42 +108,34 @@ uint32_t simdmin_length(const uint32_t * in, uint32_t length) {
 	return currentmin;
 }
 
-
-uint32_t simdmaxbitsFOR(uint32_t minvalue, const uint32_t * in) {
-    __m128i  initoffset = _mm_set1_epi32 (minvalue);
-    const __m128i* pin = (const __m128i*)(in);
-    __m128i newvec = _mm_loadu_si128(pin);
-    __m128i accumulator = _mm_sub_epi32(newvec , initoffset);
-    uint32_t k = 1;
-    for(; 4*k < SIMDBlockSize; ++k) {
-        newvec = _mm_loadu_si128(pin+k);
-        accumulator = _mm_or_si128(accumulator,_mm_sub_epi32(newvec , initoffset));
-    }
-    return maxbitas32int(accumulator);
+void simdmaxmin_length(const uint32_t * in, uint32_t length, uint32_t * getmin, uint32_t * getmax) {
+	uint32_t lengthdividedby4 = length / 4;
+	uint32_t offset = lengthdividedby4 * 4;
+	uint32_t k;
+	*getmin = 0xFFFFFFFF;
+	*getmax = 0;
+	if (lengthdividedby4 > 0) {
+		const __m128i* pin = (const __m128i*)(in);
+		__m128i minaccumulator = _mm_loadu_si128(pin);
+		__m128i maxaccumulator = minaccumulator;
+		uint32_t k = 1;
+		for(; 4*k < lengthdividedby4 * 4; ++k) {
+			__m128i newvec = _mm_loadu_si128(pin+k);
+			minaccumulator = _mm_min_epu32(minaccumulator,newvec);
+			maxaccumulator = _mm_max_epu32(maxaccumulator,newvec);
+		}
+		*getmin = minasint(minaccumulator);
+		*getmax = maxasint(maxaccumulator);
+	}
+	for (k = offset; k < length; ++k) {
+		if (in[k] < *getmin)
+			*getmin = in[k];
+		if (in[k] > *getmax)
+			*getmax = in[k];
+	}
 }
 
-uint32_t simdmaxbitsFOR_length(uint32_t minvalue, const uint32_t * in,
-                uint32_t length) {
-  uint32_t k;
-  uint32_t lengthdividedby4 = length / 4;
-  uint32_t offset = lengthdividedby4 * 4;
-  uint32_t bigxor = 0;
-  if(lengthdividedby4 > 0) {
-	    const __m128i  initoffset = _mm_set1_epi32 (minvalue);
-	    const __m128i* pin = (const __m128i*)(in);
-	    __m128i newvec = _mm_loadu_si128(pin);
-	    __m128i accumulator = _mm_sub_epi32(newvec , initoffset);
-	    k = 1;
-	    for(; 4*k < 4*lengthdividedby4; ++k) {
-	        newvec = _mm_loadu_si128(pin+k);
-	        accumulator = _mm_or_si128(accumulator,_mm_sub_epi32(newvec , initoffset));
-	    }
-	    bigxor = orasint(accumulator);
-  }
-  for(k = offset; k < length; ++k)
-	  bigxor |= (in[k] - minvalue);
-  return bits(bigxor);
-}
+
 
 SIMDCOMP_PURE uint32_t maxbits_length(const uint32_t * in,uint32_t length) {
 	  uint32_t k;

@@ -72,6 +72,7 @@ int testFOR() {
     __m128i * buffer = malloc(SIMDBlockSize * sizeof(uint32_t));
     uint32_t * datain = malloc(N * sizeof(uint32_t));
     uint32_t * backbuffer = malloc(SIMDBlockSize * sizeof(uint32_t));
+    uint32_t tmax, tmin, tb;
     for (gap = 1; gap <= 387420489; gap *= 2) {
         int k;
         printf(" gap = %u \n", gap);
@@ -79,24 +80,24 @@ int testFOR() {
             datain[k] = k * gap;
         for (k = 0; k * SIMDBlockSize < N; ++k) {
             int j;
-            uint32_t tmin = simdmin_length(datain + k * SIMDBlockSize,SIMDBlockSize);
+            simdmaxmin_length(datain + k * SIMDBlockSize,SIMDBlockSize,&tmin,&tmax);
        	    /* we compute the bit width */
-            const uint32_t b  = simdmaxbitsFOR(tmin,datain + k * SIMDBlockSize);
+            tb  = bits(tmax - tmin);
 
 
             /* we read 128 integers at "datain + k * SIMDBlockSize" and
                write b 128-bit vectors at "buffer" */
-            simdpackFOR(tmin,datain + k * SIMDBlockSize, buffer, b);
+            simdpackFOR(tmin,datain + k * SIMDBlockSize, buffer, tb);
 
             for (j = 0; j < SIMDBlockSize; ++j) {
-                        uint32_t selectedvalue = simdselectFOR(tmin,buffer,b,j);
+                        uint32_t selectedvalue = simdselectFOR(tmin,buffer,tb,j);
                     	if (selectedvalue != datain[k * SIMDBlockSize + j]) {
                             printf("bug in simdselectFOR\n");
                             return -3;
                         }
             }
             /* we read back b1 128-bit vectors at "buffer" and write 128 integers at backbuffer */
-            simdunpackFOR(tmin,buffer, backbuffer, b);/* uncompressed */
+            simdunpackFOR(tmin,buffer, backbuffer, tb);/* uncompressed */
             for (j = 0; j < SIMDBlockSize; ++j) {
             	if (backbuffer[j] != datain[k * SIMDBlockSize + j]) {
                     printf("bug in simdpackFOR\n");
@@ -200,7 +201,7 @@ int test_simdpackedsearchFOR() {
     uint32_t result = 0;
     int b;
     uint32_t i;
-    uint32_t maxv, tmin, tb;
+    uint32_t maxv, tmin, tmax, tb;
     uint32_t out[128];
 
     /* this test creates delta encoded buffers with different bits, then
@@ -210,10 +211,9 @@ int test_simdpackedsearchFOR() {
     	maxv = b == 32 ? 0xFFFFFFFF : ((1<<b) - 1);
         for (i = 0; i < 128; i++)
             buffer[i] = maxv * (i + 1) / 128;
-
-        tmin  = simdmin_length(buffer,SIMDBlockSize);
+        simdmaxmin_length(buffer,SIMDBlockSize,&tmin,&tmax);
    	    /* we compute the bit width */
-        tb  = simdmaxbitsFOR(tmin,buffer);
+        tb  = bits(tmax - tmin);
         /* delta-encode to 'i' bits */
         simdpackFOR(tmin, buffer, (__m128i *)out, tb);
         printf("simdsearchd1: %d bits\n", b);
@@ -222,7 +222,6 @@ int test_simdpackedsearchFOR() {
         for (i = 0; i < 128; i++) {
         	assert(buffer[i] == simdselectFOR(tmin, (__m128i *)out, tb,i));
         }
-
         for (i = 0; i < 128; i++) {
             int x = simdsearchwithlengthFOR(tmin, (__m128i *)out, tb,
                                     128,buffer[i], &result) ;
