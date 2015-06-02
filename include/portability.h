@@ -45,12 +45,12 @@
 # endif
 #endif
 
-/*
- * typedefs really defeat the purpose of uint32_t and uint8_t. Modern C compilers
- * should not need that:
+#if defined(_MSC_VER) && _MSC_VER < 1600
 typedef unsigned int uint32_t;
 typedef unsigned char uint8_t;
-*/
+#else
+#include <stdint.h>
+#endif
 
 #if defined(_MSC_VER)
 #define SIMDCOMP_ALIGNED(x) __declspec(align(x))
