@@ -5,7 +5,6 @@
 #define SIMDBITCOMPAT_H_
 
 #include <iso646.h> /* mostly for Microsoft compilers */
-#include <stdint.h> /* part of Visual Studio 2010 and better */
 
 #if SIMDCOMP_DEBUG
 # define SIMDCOMP_ALWAYS_INLINE inline
@@ -49,7 +48,7 @@
 typedef unsigned int uint32_t;
 typedef unsigned char uint8_t;
 #else
-#include <stdint.h>
+#include <stdint.h> /* part of Visual Studio 2010 and better, others likely anyway */
 #endif
 
 #if defined(_MSC_VER)
