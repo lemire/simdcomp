@@ -16,6 +16,7 @@ EXPORTS
 	simdselectFOR
 	simdsearchwithlengthFOR
 	simdunpackFOR
-	simdmaxbitsFOR
 	simdmin_length
+	simdmaxmin
+	simdmaxmin_length
 
