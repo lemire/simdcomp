@@ -3,7 +3,6 @@
  */
 #include <smmintrin.h>
 #include "simdintegratedbitpacking.h"
-#include "portability.h"
 
 
 SIMDCOMP_ALIGNED(16) static int8_t shuffle_mask_bytes[256] = {
