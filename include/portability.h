@@ -48,8 +48,9 @@
 #if defined(_MSC_VER) && _MSC_VER < 1600
 typedef unsigned int uint32_t;
 typedef unsigned char uint8_t;
+typedef signed char int8_t;
 #else
-#include <stdint.h>
+#include <stdint.h> /* part of Visual Studio 2010 and better, others likely anyway */
 #endif
 
 #if defined(_MSC_VER)

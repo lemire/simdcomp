@@ -2,7 +2,6 @@
  * This code is released under a BSD License.
  */
 #include <smmintrin.h>
-#include <stdint.h>
 #include "simdintegratedbitpacking.h"
 
 
