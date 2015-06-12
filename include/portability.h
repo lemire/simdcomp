@@ -5,7 +5,7 @@
 #define SIMDBITCOMPAT_H_
 
 #include <iso646.h> /* mostly for Microsoft compilers */
-#include <stdint.h> /* part of Visual Studio 2010 and better */
+#include <string.h>
 
 #if SIMDCOMP_DEBUG
 # define SIMDCOMP_ALWAYS_INLINE inline

@@ -14373,3 +14373,112 @@ int simdsearchwithlengthFOR(uint32_t initvalue, const __m128i *in, uint32_t bit,
 	return begin;
 }
 
+
+void simdpackFOR_length(uint32_t initvalue, const uint32_t *   in, int length, __m128i *    out, const uint32_t bit) {
+	int k;
+	int inwordpointer;
+	__m128i P;
+	uint32_t firstpass;
+    __m128i offset;
+	if(bit == 0) return;/* nothing to do */
+    if(bit == 32) {
+        memcpy(out,in,length*sizeof(uint32_t));
+        return;
+    }
+    offset = _mm_set1_epi32(initvalue);
+    inwordpointer = 0;
+    P = _mm_setzero_si128();
+    for(k = 0; k < length / 4 ; ++k) {
+        __m128i value = _mm_sub_epi32(_mm_loadu_si128(((const __m128i * ) in + k)),offset);
+        P = _mm_or_si128(P,_mm_slli_epi32(value, inwordpointer));
+        firstpass = sizeof(uint32_t) * 8 - inwordpointer;
+        if(bit<firstpass) {
+            inwordpointer+=bit;
+        } else {
+            _mm_storeu_si128(out++, P);
+            P = _mm_srli_epi32(value, firstpass);
+            inwordpointer=bit-firstpass;
+        }
+    }
+    if(length % 4 != 0) {
+        uint32_t buffer[4];
+        __m128i value;
+        for(k = 0; k < (length % 4); ++k) {
+            buffer[k] = in[length/4*4+k];
+        }
+        for(k = (length % 4); k < 4 ; ++k) {
+            buffer[k] = 0;
+        }
+        value = _mm_sub_epi32(_mm_loadu_si128((__m128i * ) buffer),offset);
+        P = _mm_or_si128(P,_mm_slli_epi32(value, inwordpointer));
+        firstpass = sizeof(uint32_t) * 8 - inwordpointer;
+        if(bit<firstpass) {
+            inwordpointer+=bit;
+        } else {
+            _mm_storeu_si128(out++, P);
+            P = _mm_srli_epi32(value, firstpass);
+            inwordpointer=bit-firstpass;
+        }
+    }
+    if(inwordpointer != 0) {
+        _mm_storeu_si128(out++, P);
+    }
+}
+
+
+void simdunpackFOR_length(uint32_t initvalue, const __m128i *   in, int length, uint32_t * out, const uint32_t bit) {
+    int k;
+    __m128i maskbits;
+    int inwordpointer;
+    __m128i P;
+    __m128i offset;
+    if(length == 0) return;
+    if(bit == 0) {
+        for(k = 0; k < length; ++k) {
+            out[k] = initvalue;
+        }
+    }
+    if(bit == 32) {
+        memcpy(out,in,length*sizeof(uint32_t));
+        return;
+    }
+    offset = _mm_set1_epi32(initvalue);
+    maskbits = _mm_set1_epi32((1<<bit)-1);
+    inwordpointer = 0;
+    P = _mm_loadu_si128((__m128i * ) in);
+    ++in;
+    for(k = 0; k < length  / 4; ++k) {
+        __m128i answer = _mm_srli_epi32(P, inwordpointer);
+        const uint32_t firstpass = sizeof(uint32_t) * 8 - inwordpointer;
+        if(bit < firstpass) {
+            inwordpointer += bit;
+        } else {
+            P = _mm_loadu_si128((__m128i * ) in);
+            ++in;
+            answer = _mm_or_si128(_mm_slli_epi32(P, firstpass),answer);
+            inwordpointer = bit - firstpass;
+        }
+        answer = _mm_and_si128(maskbits,answer);
+        _mm_storeu_si128((__m128i *)out, _mm_add_epi32(answer,offset));
+        out += 4;
+    }
+    if(length % 4 != 0) {
+        uint32_t buffer[4];
+    	__m128i answer = _mm_srli_epi32(P, inwordpointer);
+        const uint32_t firstpass = sizeof(uint32_t) * 8 - inwordpointer;
+        if(bit < firstpass) {
+            inwordpointer += bit;
+        } else {
+            P = _mm_loadu_si128((__m128i * ) in);
+            ++in;
+            answer = _mm_or_si128(_mm_slli_epi32(P, firstpass),answer);
+            inwordpointer = bit - firstpass;
+        }
+        answer = _mm_and_si128(maskbits,answer);
+        _mm_storeu_si128((__m128i *)buffer, _mm_add_epi32(answer,offset));
+        for(k = 0; k < (length % 4); ++k) {
+            *out = buffer[k];
+            ++out;
+        }
+    }
+}

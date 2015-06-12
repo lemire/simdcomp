@@ -14069,6 +14069,7 @@ void simdunpack_length(const __m128i *   in, int length, uint32_t * out, const u
     __m128i maskbits;
     int inwordpointer;
     __m128i P;
+    if(length == 0) return;
     if(bit == 0) {
         for(k = 0; k < length; ++k) {
             out[k] = 0;

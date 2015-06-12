@@ -23,6 +23,13 @@ void simdpackFOR(uint32_t initvalue, const uint32_t *  in,__m128i *  out, const 
 void simdunpackFOR(uint32_t initvalue, const __m128i *  in,uint32_t *  out, const uint32_t bit);
 
 
+/* like simdpackFOR, but supports an undetermined number of inputs. This is useful if you need to pack less than 128 integers. Note that this function is much slower. */
+void simdpackFOR_length(uint32_t initvalue, const uint32_t *   in, int length, __m128i *    out, const uint32_t bit);
+
+/* like simdunpackFOR, but supports an undetermined number of inputs. This is useful if you need to unpack less than 128 integers. Note that this function is much slower. */
+void simdunpackFOR_length(uint32_t initvalue, const __m128i *   in, int length, uint32_t * out, const uint32_t bit);
+
+
 /* returns the value stored at the specified "slot".
 * */
 uint32_t simdselectFOR(uint32_t initvalue, const __m128i *in, uint32_t bit,

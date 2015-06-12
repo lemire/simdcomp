@@ -42,6 +42,43 @@ int testshortpack() {
 	return 0;
 }
 
+int testshortFORpack() {
+	int bit;
+	size_t i;
+	size_t length;
+	uint32_t offset = 7;
+	srand(0);
+	for (bit = 0; bit < 32; ++bit) {
+		const size_t N = 128;
+		uint32_t * data = malloc(N * sizeof(uint32_t));
+		uint32_t * backdata = malloc(N * sizeof(uint32_t));
+		uint32_t * buffer = malloc((2 * N + 1024) * sizeof(uint32_t));
+
+		for (i = 0; i < N; ++i) {
+			data[i] = (rand() & ((1 << bit) - 1)) + offset;
+		}
+		for (length = 0; length <= N; ++length) {
+			for (i = 0; i < N; ++i) {
+				backdata[i] = 0;
+			}
+			simdpackFOR_length(offset,data, length, (__m128i *) buffer,
+					bit);
+			simdunpackFOR_length(offset,(__m128i *) buffer, length,
+					backdata, bit);
+			for (i = 0; i < length; ++i) {
+
+				if (data[i] != backdata[i])
+					return -1;
+			}
+		}
+		free(data);
+		free(backdata);
+		free(buffer);
+	}
+	return 0;
+}
+
+
 int test() {
     int N = 5000 * SIMDBlockSize, gap;
     __m128i * buffer = malloc(SIMDBlockSize * sizeof(uint32_t));
@@ -442,9 +479,13 @@ int test_simdpackedselect_advanced() {
 
 int main() {
     int r;
+
+    r = testshortFORpack();
+    if (r)
+         return r;
     r = testshortpack();
     if (r)
-            return r;
+        return r;
 
     r = test_simdpackedsearchFOR();
     if (r)
