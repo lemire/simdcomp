@@ -14014,15 +14014,15 @@ void simdpack(const uint32_t *   in, __m128i *    out, const uint32_t bit) {
 
 
 
-void simdpack_length( const uint32_t *   in, int length, __m128i *    out, const uint32_t bit) {
+__m128i * simdpack_length( const uint32_t *   in, int length, __m128i *    out, const uint32_t bit) {
 	int k;
 	int inwordpointer;
 	__m128i P;
 	uint32_t firstpass;
-	if(bit == 0) return;/* nothing to do */
+	if(bit == 0) return out;/* nothing to do */
     if(bit == 32) {
         memcpy(out,in,length*sizeof(uint32_t));
-        return;
+        return (__m128i *)((uint32_t *) out + length);
     }
     inwordpointer = 0;
     P = _mm_setzero_si128();
@@ -14061,23 +14061,25 @@ void simdpack_length( const uint32_t *   in, int length, __m128i *    out, const
     if(inwordpointer != 0) {
         _mm_storeu_si128(out++, P);
     }
+    return out;
 }
 
 
-void simdunpack_length(const __m128i *   in, int length, uint32_t * out, const uint32_t bit) {
+const __m128i * simdunpack_length(const __m128i *   in, int length, uint32_t * out, const uint32_t bit) {
     int k;
     __m128i maskbits;
     int inwordpointer;
     __m128i P;
-    if(length == 0) return;
+    if(length == 0) return in;
     if(bit == 0) {
         for(k = 0; k < length; ++k) {
             out[k] = 0;
         }
+        return in;
     }
     if(bit == 32) {
         memcpy(out,in,length*sizeof(uint32_t));
-        return;
+        return (const __m128i *) ((uint32_t *) in + length);
     }
     maskbits = _mm_set1_epi32((1<<bit)-1);
     inwordpointer = 0;
@@ -14117,5 +14119,6 @@ void simdunpack_length(const __m128i *   in, int length, uint32_t * out, const u
             ++out;
         }
     }
+    return in;
 }
 

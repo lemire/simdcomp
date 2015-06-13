@@ -21,9 +21,9 @@ void simdpackwithoutmask(const uint32_t *  in,__m128i *  out, const uint32_t bit
 void simdunpack(const __m128i *  in,uint32_t *  out, const uint32_t bit);
 
 /* like simdpack, but supports an undetermined number of inputs. This is useful if you need to pack less than 128 integers. Note that this function is much slower. */
-void simdpack_length(const uint32_t *   in, int length, __m128i *    out, const uint32_t bit);
+__m128i * simdpack_length(const uint32_t *   in, int length, __m128i *    out, const uint32_t bit);
 
 /* like simdunpack, but supports an undetermined number of inputs. This is useful if you need to unpack less than 128 integers. Note that this function is much slower. */
-void simdunpack_length(const __m128i *   in, int length, uint32_t * out, const uint32_t bit);
+const __m128i * simdunpack_length(const __m128i *   in, int length, uint32_t * out, const uint32_t bit);
 
 #endif /* SIMDBITPACKING_H_ */
