@@ -26,4 +26,7 @@ __m128i * simdpack_length(const uint32_t *   in, int length, __m128i *    out, c
 /* like simdunpack, but supports an undetermined number of inputs. This is useful if you need to unpack less than 128 integers. Note that this function is much slower. */
 const __m128i * simdunpack_length(const __m128i *   in, int length, uint32_t * out, const uint32_t bit);
 
+/* given a block of 128 packed values, this function sets the value at index "index" to "value" */
+void simdfastset(__m128i * in128, uint32_t b, uint32_t value, size_t index);
+
 #endif /* SIMDBITPACKING_H_ */

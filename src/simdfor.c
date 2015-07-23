@@ -14485,3 +14485,8 @@ const __m128i * simdunpackFOR_length(uint32_t initvalue, const __m128i *   in, i
     }
     return in;
 }
+
+
+void simdfastsetFOR(uint32_t initvalue, __m128i * in, uint32_t bit, uint32_t value, size_t index) {
+	simdfastset(in, bit, value - initvalue, index);
+}

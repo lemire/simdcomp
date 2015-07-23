@@ -42,6 +42,59 @@ int testshortpack() {
 	return 0;
 }
 
+
+int testset() {
+	int bit;
+	size_t i;
+	const size_t N = 128;
+	uint32_t * data = malloc(N * sizeof(uint32_t));
+	uint32_t * backdata = malloc(N * sizeof(uint32_t));
+	uint32_t * buffer = malloc((2 * N + 1024) * sizeof(uint32_t));
+
+	srand(0);
+	for (bit = 0; bit < 32; ++bit) {
+		printf("simple set %d \n",bit);
+
+		for (i = 0; i < N; ++i) {
+			data[i] = rand() & ((1 << bit) - 1);
+		}
+		for (i = 0; i < N; ++i) {
+			backdata[i] = 0;
+		}
+		simdpack(data, (__m128i *) buffer, bit);
+		simdunpack((__m128i *) buffer, backdata, bit);
+		for (i = 0; i < N; ++i) {
+			if (data[i] != backdata[i])
+				return -1;
+		}
+
+		for(i = N  ; i > 0; i--) {
+			simdfastset((__m128i *) buffer, bit, data[N - i], i - 1);
+		}
+		simdunpack((__m128i *) buffer, backdata, bit);
+		for (i = 0; i < N; ++i) {
+			if (data[i] != backdata[N - i - 1])
+				return -1;
+		}
+		simdpack(data, (__m128i *) buffer, bit);
+		for(i = 1  ; i <= N; i++) {
+			simdfastset((__m128i *) buffer, bit, data[i - 1], i - 1);
+		}
+		simdunpack((__m128i *) buffer, backdata, bit);
+		for (i = 0; i < N; ++i) {
+			if (data[i] != backdata[i])
+				return -1;
+		}
+
+	}
+	free(data);
+	free(backdata);
+	free(buffer);
+
+	return 0;
+}
+
+
 int testshortFORpack() {
 	int bit;
 	size_t i;
@@ -280,7 +333,9 @@ int test_simdpackedsearchFOR() {
      * performs lower bound searches for each key */
     for (b = 1; b <= 32; b++) {
         /* initialize the buffer */
-    	maxv = b == 32 ? 0xFFFFFFFF : ((1<<b) - 1);
+    	maxv = (b == 32)
+    			? 0xFFFFFFFF
+    					: ((1U<<b) - 1);
         for (i = 0; i < 128; i++)
             buffer[i] = maxv * (i + 1) / 128;
         simdmaxmin_length(buffer,SIMDBlockSize,&tmin,&tmax);
@@ -479,6 +534,10 @@ int test_simdpackedselect_advanced() {
 
 int main() {
     int r;
+
+    r =  testset();
+    if (r)
+         return r;
 
     r = testshortFORpack();
     if (r)

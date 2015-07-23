@@ -11,6 +11,7 @@
 #include <emmintrin.h>
 
 #include "simdcomputil.h"
+#include "simdbitpacking.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -61,6 +62,15 @@ int simdsearchwithlengthd1(uint32_t initvalue, const __m128i *in, uint32_t bit,
 * */
 uint32_t simdselectd1(uint32_t initvalue, const __m128i *in, uint32_t bit,
                 int slot);
+
+/* given a block of 128 packed values, this function sets the value at index "index" to "value",
+ * you must somehow know the previous value */
+void simdfastsetd1fromprevious( __m128i * in, uint32_t bit, uint32_t previousvalue, uint32_t value, size_t index);
+
+/* given a block of 128 packed values, this function sets the value at index "index" to "value",
+ * you must somehow know the previous value */
+void simdfastsetd1(uint32_t initvalue, __m128i * in, uint32_t bit, uint32_t value, size_t index);
+
 
 /*Simply scan the data
 * The pointer initOffset is a pointer to the last four value decoded

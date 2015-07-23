@@ -10,6 +10,7 @@
 #include <emmintrin.h>
 
 #include "simdcomputil.h"
+#include "simdbitpacking.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -34,6 +35,10 @@ const __m128i * simdunpackFOR_length(uint32_t initvalue, const __m128i *   in, i
 * */
 uint32_t simdselectFOR(uint32_t initvalue, const __m128i *in, uint32_t bit,
                 int slot);
+
+/* given a block of 128 packed values, this function sets the value at index "index" to "value" */
+void simdfastsetFOR(uint32_t initvalue, __m128i * in, uint32_t bit, uint32_t value, size_t index);
+
 
 /* searches "bit" 128-bit vectors from "in" (= length<=128 encoded integers) for the first encoded uint32 value
  * which is >= |key|, and returns its position. It is assumed that the values

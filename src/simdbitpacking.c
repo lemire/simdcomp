@@ -14122,3 +14122,26 @@ const __m128i * simdunpack_length(const __m128i *   in, int length, uint32_t * o
     return in;
 }
 
+void simdfastset(__m128i * in128, uint32_t b, uint32_t value, size_t index) {
+    uint32_t * in = (uint32_t *) in128;
+    const int lane = index % 4; /* we have 4 interleaved lanes */
+    const int bitsinlane = (index / 4) * b; /* how many bits in lane */
+    const int firstwordinlane = bitsinlane / 32;
+    const int secondwordinlane = (bitsinlane + b - 1) / 32;
+    const uint32_t mask = (1 << b) - 1;
+
+    in[4 * firstwordinlane + lane] &= ~(mask << (bitsinlane % 32));/* we zero */
+    in[4 * firstwordinlane + lane] |= (value << (bitsinlane % 32));/* we write */
+    if (firstwordinlane == secondwordinlane) {
+        /* easy common case*/
+        return;
+    } else {
+        /* harder case where we need to combine two words */
+        const int firstbits =  32 - (bitsinlane % 32) ;
+        const int usablebits = b - firstbits;
+        const uint32_t mask2 = (1 << usablebits) - 1;
+        in[4 * firstwordinlane + 4 + lane] &= ~mask2;/* we zero */
+        in[4 * firstwordinlane + 4 + lane] |= value >> firstbits;/* we write */
+        return;
+    }
+}
