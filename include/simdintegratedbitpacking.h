@@ -64,11 +64,19 @@ uint32_t simdselectd1(uint32_t initvalue, const __m128i *in, uint32_t bit,
                 int slot);
 
 /* given a block of 128 packed values, this function sets the value at index "index" to "value",
- * you must somehow know the previous value */
+ * you must somehow know the previous value.
+ * Because of differential coding, all following values are incremented by the offset between this new
+ * value and the old value... 
+ * This functions is useful if you want to modify the last value. 
+ */
 void simdfastsetd1fromprevious( __m128i * in, uint32_t bit, uint32_t previousvalue, uint32_t value, size_t index);
 
 /* given a block of 128 packed values, this function sets the value at index "index" to "value",
- * you must somehow know the previous value */
+ * This function computes the previous value if needed.
+ * Because of differential coding, all following values are incremented by the offset between this new
+ * value and the old value...
+ * This functions is useful if you want to modify the last value. 
+ */
 void simdfastsetd1(uint32_t initvalue, __m128i * in, uint32_t bit, uint32_t value, size_t index);
 
 

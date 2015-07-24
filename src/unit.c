@@ -94,6 +94,95 @@ int testset() {
 	return 0;
 }
 
+int testsetd1() {
+	int bit;
+	size_t i;
+	uint32_t newvalue;
+	const size_t N = 128;
+	uint32_t * data = malloc(N * sizeof(uint32_t));
+	uint32_t * datazeroes = malloc(N * sizeof(uint32_t));
+
+	uint32_t * backdata = malloc(N * sizeof(uint32_t));
+	uint32_t * buffer = malloc((2 * N + 1024) * sizeof(uint32_t));
+
+	srand(0);
+	for (bit = 0; bit < 32; ++bit) {
+		printf("simple set d1 %d \n",bit);
+		data[0] = rand() & ((1 << bit) - 1);
+		datazeroes[0] = 0;
+
+		for (i = 1; i < N; ++i) {
+			data[i] = data[i - 1] + (rand() & ((1 << bit) - 1));
+			datazeroes[i] = 0;
+		}
+		for (i = 0; i < N; ++i) {
+			backdata[i] = 0;
+		}
+		simdpackd1(0,datazeroes, (__m128i *) buffer, bit);
+ 	    for(i = 1  ; i <= N; i++) {
+			simdfastsetd1(0,(__m128i *) buffer, bit, data[i - 1], i - 1);
+			newvalue = simdselectd1(0, (const __m128i *) buffer, bit,i - 1);
+			if( newvalue != data[i-1] ) {
+				printf("bad set-select\n");
+				return -1;
+			}
+		}
+		simdunpackd1(0,(__m128i *) buffer, backdata, bit);
+		for (i = 0; i < N; ++i) {
+			if (data[i] != backdata[i])
+				return -1;
+		}
+	}
+	free(data);
+	free(backdata);
+	free(buffer);
+
+	return 0;
+}
+
+
+int testsetFOR() {
+	int bit;
+	size_t i;
+	uint32_t newvalue;
+	const size_t N = 128;
+	uint32_t * data = malloc(N * sizeof(uint32_t));
+	uint32_t * datazeroes = malloc(N * sizeof(uint32_t));
+
+	uint32_t * backdata = malloc(N * sizeof(uint32_t));
+	uint32_t * buffer = malloc((2 * N + 1024) * sizeof(uint32_t));
+
+	srand(0);
+	for (bit = 0; bit < 32; ++bit) {
+		printf("simple set FOR %d \n",bit);
+		for (i = 0; i < N; ++i) {
+			data[i] = (rand() & ((1 << bit) - 1));
+			datazeroes[i] = 0;
+		}
+		for (i = 0; i < N; ++i) {
+			backdata[i] = 0;
+		}
+		simdpackFOR(0,datazeroes, (__m128i *) buffer, bit);
+ 	    for(i = 1  ; i <= N; i++) {
+ 	    	simdfastsetFOR(0,(__m128i *) buffer, bit, data[i - 1], i - 1);
+			newvalue = simdselectFOR(0, (const __m128i *) buffer, bit,i - 1);
+			if( newvalue != data[i-1] ) {
+				printf("bad set-select\n");
+				return -1;
+			}
+		}
+		simdunpackFOR(0,(__m128i *) buffer, backdata, bit);
+		for (i = 0; i < N; ++i) {
+			if (data[i] != backdata[i])
+				return -1;
+		}
+	}
+	free(data);
+	free(backdata);
+	free(buffer);
+
+	return 0;
+}
 
 int testshortFORpack() {
 	int bit;
@@ -534,6 +623,12 @@ int test_simdpackedselect_advanced() {
 
 int main() {
     int r;
+    r =  testsetFOR();
+    if (r)
+         return r;
+    r =  testsetd1();
+    if (r)
+         return r;
 
     r =  testset();
     if (r)
