@@ -14014,7 +14014,7 @@ void simdpack(const uint32_t *   in, __m128i *    out, const uint32_t bit) {
 
 
 
-__m128i * simdpack_length( const uint32_t *   in, int length, __m128i *    out, const uint32_t bit) {
+__m128i * simdpack_shortlength( const uint32_t *   in, int length, __m128i *    out, const uint32_t bit) {
 	int k;
 	int inwordpointer;
 	__m128i P;
@@ -14065,7 +14065,8 @@ __m128i * simdpack_length( const uint32_t *   in, int length, __m128i *    out, 
 }
 
 
-const __m128i * simdunpack_length(const __m128i *   in, int length, uint32_t * out, const uint32_t bit) {
+
+const __m128i * simdunpack_shortlength(const __m128i *   in, int length, uint32_t * out, const uint32_t bit) {
     int k;
     __m128i maskbits;
     int inwordpointer;
@@ -14144,4 +14145,24 @@ void simdfastset(__m128i * in128, uint32_t b, uint32_t value, size_t index) {
         in[4 * firstwordinlane + 4 + lane] |= value >> firstbits;/* we write */
         return;
     }
+}
+
+__m128i * simdpack_length(const uint32_t *   in, size_t length, __m128i *    out, const uint32_t bit) {
+    size_t k;
+    for(k = 0; k < length / SIMDBlockSize; ++k) {
+        simdpack(in, out, bit);
+        in += SIMDBlockSize;
+        out += bit;
+    }
+    return simdpack_shortlength(in, length % SIMDBlockSize, out, bit);
+}
+
+const __m128i * simdunpack_length(const __m128i *   in, size_t length, uint32_t * out, const uint32_t bit) {
+    size_t k;
+    for(k = 0; k < length / SIMDBlockSize; ++k) {
+        simdunpack(in, out, bit);
+        out += SIMDBlockSize;
+        in += bit;
+    }
+    return simdunpack_shortlength(in, length % SIMDBlockSize, out, bit);
 }

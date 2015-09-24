@@ -43,7 +43,7 @@ int compress_decompress_demo() {
 
   for (k = 0; k < N; ++k){
     if(datain[k] != backbuffer[k]) {
-      printf("bug\n");
+      printf("bug at %lu \n",(unsigned long)k);
       return -1;
     }
   }
