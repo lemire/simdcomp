@@ -3,8 +3,42 @@
 #include <stdlib.h>
 #include "simdcomp.h"
 
+/**
+We provide several different code examples.
+**/
 
-/* compresses data from datain to buffer, returns how many bytes written */
+
+/* very simple test to illustrate a simple application */
+int compress_decompress_demo() {
+  size_t k, N = 9999;
+  uint32_t * datain = malloc(N * sizeof(uint32_t));
+  uint8_t * buffer = malloc(N * sizeof(uint32_t) + N / SIMDBlockSize);
+  uint32_t * backbuffer = malloc(N * sizeof(uint32_t));
+  uint32_t b;
+  printf("== simple test\n");
+
+  for (k = 0; k < N; ++k){        /* start with k=0, not k=1! */
+    datain[k] = k;
+  }
+
+  b = maxbits_length(datain, N);
+  simdpack_length(datain, N, (__m128i *)buffer, b);
+  simdunpack_length((const __m128i *)buffer, N, backbuffer, b);
+
+  for (k = 0; k < N; ++k){
+    if(datain[k] != backbuffer[k]) {
+      printf("bug at %lu \n",(unsigned long)k);
+      return -1;
+    }
+  }
+  printf("Code works!\n");
+  return 0;
+}
+
+
+
+/* compresses data from datain to buffer, returns how many bytes written
+used below in simple_demo */
 size_t compress(uint32_t * datain, size_t length, uint8_t * buffer) {
     uint32_t offset;
     uint8_t * initout;
@@ -26,30 +60,7 @@ size_t compress(uint32_t * datain, size_t length, uint8_t * buffer) {
 	return buffer - initout;
 }
 
-int compress_decompress_demo() {
-  size_t k, N = 9999;
-  uint32_t * datain = malloc(N * sizeof(uint32_t));
-  uint8_t * buffer = malloc(N * sizeof(uint32_t) + N / SIMDBlockSize);
-  uint32_t * backbuffer = malloc(N * sizeof(uint32_t));
-  uint32_t b;
-
-  for (k = 0; k < N; ++k){        /* start with k=0, not k=1! */
-    datain[k] = k;
-  }
-
-  b = maxbits_length(datain, N);
-  simdpack_length(datain, N, (__m128i *)buffer, b);
-  simdunpack_length((const __m128i *)buffer, N, backbuffer, b);
-
-  for (k = 0; k < N; ++k){
-    if(datain[k] != backbuffer[k]) {
-      printf("bug at %lu \n",(unsigned long)k);
-      return -1;
-    }
-  }
-  return 0;
-}
-
+/* Another illustration ... */
 void simple_demo() {
   size_t REPEAT = 10, gap;
   size_t N = 1000000 * SIMDBlockSize;/* SIMDBlockSize is 128 */
@@ -58,6 +69,7 @@ void simple_demo() {
   clock_t start, end;
   uint8_t * buffer = malloc(N * sizeof(uint32_t) + N / SIMDBlockSize); /* output buffer */
   uint32_t * backbuffer = malloc(SIMDBlockSize * sizeof(uint32_t));
+  printf("== simple demo\n");
   for (gap = 1; gap <= 243; gap *= 3) {
       size_t k, repeat;
       uint32_t offset = 0;
@@ -105,8 +117,58 @@ void simple_demo() {
   free(backbuffer);
 }
 
+/* Used below in more_sophisticated_demo ... */
+size_t varying_bit_width_compress(uint32_t * datain, size_t length, uint8_t * buffer) {
+    uint8_t * initout;
+    size_t k;
+    if(length/SIMDBlockSize*SIMDBlockSize != length) {
+        printf("Data length should be a multiple of %i \n",SIMDBlockSize);
+    }
+    initout = buffer;
+    for(k = 0; k < length / SIMDBlockSize; ++k) {
+        uint32_t b = maxbits(datain);
+        *buffer++ = b;
+        simdpackwithoutmask(datain, (__m128i *)buffer, b);
+        datain += SIMDBlockSize;
+        buffer += b * sizeof(__m128i);
+    }
+    return buffer - initout;
+}
+
+/* Here we compress the data in blocks of 128 integers with varying bit width */
+int varying_bit_width_demo() {
+  size_t nn = 128 * 2;
+  uint32_t * datainn = malloc(nn * sizeof(uint32_t));
+  uint8_t * buffern = malloc(nn * sizeof(uint32_t) + nn / SIMDBlockSize);
+  uint32_t * backbuffern = malloc(nn * sizeof(uint32_t));
+  size_t k, compsize;
+  printf("== varying bit-width demo\n");
+
+  for(k=0;k<nn;++k){
+    datainn[k] = rand() % (k + 1);
+  }
+
+  compsize = varying_bit_width_compress(datainn,nn,buffern);
+  printf("encoded size: %u (original size: %u)\n", (unsigned)compsize,
+                (unsigned)(nn * sizeof(uint32_t)));
+
+  for (k = 0; k * SIMDBlockSize < nn; ++k) {
+    uint32_t b = *buffern;
+    buffern++;
+    simdunpack((const __m128i *)buffern, backbuffern + k * SIMDBlockSize, b);
+    buffern += b * sizeof(__m128i);
+  }
+
+  for (k = 0; k < nn; ++k){
+    if(backbuffern[k] != datainn[k]) { printf("bug\n"); return -1;}
+  }
+  printf("Code works!\n");
+  return 0;
+}
+
 int main() {
     if(compress_decompress_demo() != 0) return -1;
+    if(varying_bit_width_demo() != 0) return -1;
     simple_demo();
     return 0;
 }
