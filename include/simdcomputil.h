@@ -19,7 +19,26 @@ uint32_t bits(const uint32_t v);
 /* max integer logarithm over a range of SIMDBlockSize integers (128 integer) */
 uint32_t maxbits(const uint32_t * begin);
 
+/* same as maxbits, but we specify the number of integers */
+uint32_t maxbits_length(const uint32_t * in,uint32_t length);
+
 enum{ SIMDBlockSize = 128};
+
+
+/* computes (quickly) the minimal value of 128 values */
+uint32_t simdmin(const uint32_t * in);
+
+/* computes (quickly) the minimal value of the specified number of values */
+uint32_t simdmin_length(const uint32_t * in, uint32_t length);
+
+
+/* computes (quickly) the minimal and maximal value of the specified number of values */
+void simdmaxmin_length(const uint32_t * in, uint32_t length, uint32_t * getmin, uint32_t * getmax);
+
+/* computes (quickly) the minimal and maximal value of the 128 values */
+void simdmaxmin(const uint32_t * in, uint32_t * getmin, uint32_t * getmax);
+
+
 
 /* like maxbit over 128 integers (SIMDBlockSize) with provided initial value 
    and using differential coding */

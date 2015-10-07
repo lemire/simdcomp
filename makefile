@@ -3,9 +3,9 @@
 #
 .SUFFIXES: .cpp .o .c .h
 ifeq ($(DEBUG),1)
-CFLAGS = -fPIC  -std=c89 -ggdb -march=native -Wall -Wextra -pedantic
+CFLAGS = -fPIC  -std=c89 -ggdb -msse4.1 -march=native -Wall -Wextra -pedantic
 else
-CFLAGS = -fPIC -std=c89 -O3 -march=native -Wall -Wextra -pedantic
+CFLAGS = -fPIC -std=c89 -O3 -msse4.1  -march=native -Wall -Wextra -pedantic
 endif # debug
 LDFLAGS = -shared
 LIBNAME=libsimdcomp.so.0.0.3
@@ -21,7 +21,7 @@ install: $(OBJECTS)
 
 
 
-HEADERS=./include/simdbitpacking.h ./include/simdcomputil.h ./include/simdintegratedbitpacking.h ./include/simdcomp.h 
+HEADERS=./include/simdbitpacking.h ./include/simdcomputil.h ./include/simdintegratedbitpacking.h ./include/simdcomp.h ./include/simdfor.h 
 
 uninstall:
 	for h in $(HEADERS) ; do rm  /usr/local/$$h; done
@@ -31,11 +31,15 @@ uninstall:
 
 
 OBJECTS= simdbitpacking.o simdintegratedbitpacking.o simdcomputil.o \
-		 simdpackedsearch.o simdpackedselect.o
+		 simdpackedsearch.o simdpackedselect.o simdfor.o
 
 $(LIBNAME): $(OBJECTS)
 	$(CC) $(CFLAGS) -o $(LIBNAME) $(OBJECTS)  $(LDFLAGS) 
 
+
+
+simdfor.o: ./src/simdfor.c $(HEADERS)
+	$(CC) $(CFLAGS) -c ./src/simdfor.c -Iinclude  
 
 
 simdcomputil.o: ./src/simdcomputil.c $(HEADERS)

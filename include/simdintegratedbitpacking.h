@@ -11,6 +11,7 @@
 #include <emmintrin.h>
 
 #include "simdcomputil.h"
+#include "simdbitpacking.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -34,9 +35,14 @@ void simdunpackd1(uint32_t initvalue, const __m128i *  in,uint32_t *  out, const
  * which is >= |key|, and returns its position. It is assumed that the values
  * stored are in sorted order.
  * The encoded key is stored in "*presult". If no value is larger or equal to the key,
-* 128 is returned */
-int simdsearchd1(uint32_t initvalue, const __m128i *in, uint32_t bit,
-                 uint32_t key, uint32_t *presult);
+* 128 is returned. The pointer initOffset is a pointer to the last four value decoded
+* (when starting out, this can be a zero vector or initialized with _mm_set1_epi32(init)),
+* and the vector gets updated.
+**/
+int
+simdsearchd1(__m128i * initOffset, const __m128i *in, uint32_t bit,
+                uint32_t key, uint32_t *presult);
+
 
 /* searches "bit" 128-bit vectors from "in" (= length<=128 encoded integers) for the first encoded uint32 value
  * which is >= |key|, and returns its position. It is assumed that the values
@@ -52,10 +58,36 @@ int simdsearchwithlengthd1(uint32_t initvalue, const __m128i *in, uint32_t bit,
 
 
 
-/* returns the value stored at the specified "slot". */
+/* returns the value stored at the specified "slot".
+* */
 uint32_t simdselectd1(uint32_t initvalue, const __m128i *in, uint32_t bit,
                 int slot);
 
+/* given a block of 128 packed values, this function sets the value at index "index" to "value",
+ * you must somehow know the previous value.
+ * Because of differential coding, all following values are incremented by the offset between this new
+ * value and the old value... 
+ * This functions is useful if you want to modify the last value. 
+ */
+void simdfastsetd1fromprevious( __m128i * in, uint32_t bit, uint32_t previousvalue, uint32_t value, size_t index);
+
+/* given a block of 128 packed values, this function sets the value at index "index" to "value",
+ * This function computes the previous value if needed.
+ * Because of differential coding, all following values are incremented by the offset between this new
+ * value and the old value...
+ * This functions is useful if you want to modify the last value. 
+ */
+void simdfastsetd1(uint32_t initvalue, __m128i * in, uint32_t bit, uint32_t value, size_t index);
+
+
+/*Simply scan the data
+* The pointer initOffset is a pointer to the last four value decoded
+* (when starting out, this can be a zero vector or initialized with _mm_set1_epi32(init);),
+* and the vector gets updated.
+* */
+
+void
+simdscand1(__m128i * initOffset, const __m128i *in, uint32_t bit);
 
 #ifdef __cplusplus
 } // extern "C"

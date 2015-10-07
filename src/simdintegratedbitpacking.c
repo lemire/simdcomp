@@ -24863,3 +24863,15 @@ void simdpackd1(uint32_t initvalue, const uint32_t *   in, __m128i * out, const 
     }
 }
 
+void simdfastsetd1fromprevious( __m128i * in, uint32_t bit, uint32_t previousvalue, uint32_t value, size_t index) {
+	simdfastset(in, bit, value - previousvalue, index);
+}
+
+void simdfastsetd1(uint32_t initvalue, __m128i * in, uint32_t bit, uint32_t value, size_t index) {
+	if(index == 0) {
+		simdfastset(in, bit, value - initvalue, index);
+	} else {
+		uint32_t prev = simdselectd1(initvalue, in, bit,index - 1);
+		simdfastset(in, bit, value - prev, index);
+	}
+}

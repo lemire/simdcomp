@@ -5,9 +5,18 @@ EXPORTS
 	bits
 	maxbits
 	simdmaxbitsd1
+	simdmaxbitsd1_length
 	simdpackd1
 	simdpackwithoutmaskd1
 	simdunpackd1
 	simdsearchd1
 	simdsearchwithlengthd1
 	simdselectd1
+	simdpackFOR
+	simdselectFOR
+	simdsearchwithlengthFOR
+	simdunpackFOR
+	simdmin_length
+	simdmaxmin
+	simdmaxmin_length
+

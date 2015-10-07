@@ -1,9 +1,9 @@
-The SIMDComp library 
+The SIMDComp library
 ====================
 [![Build Status](https://travis-ci.org/lemire/simdcomp.png)](https://travis-ci.org/lemire/simdcomp)
 
 A simple C library for compressing lists of integers using binary packing and SIMD instructions.
-The assumption is either that you have a list of 32-bit integers where most of them are small, or a list of 32-bit integers where differences between successive integers are small. No software is able to reliably compress an array of random numbers.
+The assumption is either that you have a list of 32-bit integers where most of them are small, or a list of 32-bit integers where differences between successive integers are small. No software is able to reliably compress an array of 32-bit random numbers.
 
 This library can decode at least 4 billions of compressed integers per second on most
 desktop or laptop processors. That is, it can decompress data at a rate of 15 GB/s.
@@ -19,7 +19,7 @@ format. It is up to the (sophisticated) user to create a compressed format.
 Requirements
 -------------
 
-- Your processor should support SSE2 (Pentium4 or better)
+- Your processor should support SSE4.1 (It is supported by most Intel and AMD processors released since 2008.)
 - C99 compliant compiler (GCC is assumed)
 - A Linux-like distribution is assumed by the makefile
 
@@ -35,20 +35,51 @@ run it with "make example; ./example").
 
 1) Lists of integers in random order.
 
-        const uint32_t b = maxbits(datain);// computes bit width
-        simdpackwithoutmask(datain, buffer, b);//compressed to buffer
-        simdunpack(buffer, backbuffer, b);//uncompressed to backbuffer
+```C            
+const uint32_t b = maxbits(datain);// computes bit width
+simdpackwithoutmask(datain, buffer, b);//compressed to buffer
+simdunpack(buffer, backbuffer, b);//uncompressed to backbuffer
+```
 
 While 128 32-bit integers are read, only b 128-bit words are written. Thus, the compression ratio is 32/b.
 
 2) Sorted lists of integers.
 
 We used differential coding: we store the difference between successive integers. For this purpose, we need an initial value (called offset).
-            
-        uint32_t offset = 0; 
-        uint32_t b1 = simdmaxbitsd1(offset,datain); // bit width
-        simdpackwithoutmaskd1(offset, datain, buffer, b1);//compressed
-        simdunpackd1(offset, buffer, backbuffer, b1);//uncompressed
+
+```C            
+uint32_t offset = 0;
+uint32_t b1 = simdmaxbitsd1(offset,datain); // bit width
+simdpackwithoutmaskd1(offset, datain, buffer, b1);//compressed
+simdunpackd1(offset, buffer, backbuffer, b1);//uncompressed
+```
+
+General example for arrays of arbitrary length:
+```C
+int compress_decompress_demo() {
+  size_t k, N = 9999;
+  uint32_t * datain = malloc(N * sizeof(uint32_t));
+  uint8_t * buffer = malloc(N * sizeof(uint32_t) + N / SIMDBlockSize);
+  uint32_t * backbuffer = malloc(N * sizeof(uint32_t));
+  uint32_t b;
+
+  for (k = 0; k < N; ++k){        /* start with k=0, not k=1! */
+    datain[k] = k;
+  }
+
+  b = maxbits_length(datain, N);
+  simdpack_length(datain, N, (__m128i *)buffer, b);
+  simdunpack_length((const __m128i *)buffer, N, backbuffer, b);
+
+  for (k = 0; k < N; ++k){
+    if(datain[k] != backbuffer[k]) {
+      printf("bug\n");
+      return -1;
+    }
+  }
+  return 0;
+}
+```
 
 Setup
 ---------
@@ -59,7 +90,7 @@ make test
 
 and if you are daring:
 
-make install 
+make install
 
 Go
 --------
@@ -83,5 +114,3 @@ References
 * Daniel Lemire and Leonid Boytsov, Decoding billions of integers per second through vectorization, Software Practice & Experience 45 (1), 2015.  http://arxiv.org/abs/1209.2137 http://onlinelibrary.wiley.com/doi/10.1002/spe.2203/abstract
 * Jeff Plaisance, Nathan Kurz, Daniel Lemire, Vectorized VByte Decoding, International Symposium on Web Algorithms 2015, 2015. http://arxiv.org/abs/1503.07387
 * Wayne Xin Zhao, Xudong Zhang, Daniel Lemire, Dongdong Shan, Jian-Yun Nie, Hongfei Yan, Ji-Rong Wen, A General SIMD-based Approach to Accelerating Compression Algorithms, ACM Transactions on Information Systems 33 (3), 2015. http://arxiv.org/abs/1502.01916
-
-

@@ -14014,3 +14014,155 @@ void simdpack(const uint32_t *   in, __m128i *    out, const uint32_t bit) {
 
 
 
+__m128i * simdpack_shortlength( const uint32_t *   in, int length, __m128i *    out, const uint32_t bit) {
+	int k;
+	int inwordpointer;
+	__m128i P;
+	uint32_t firstpass;
+	if(bit == 0) return out;/* nothing to do */
+    if(bit == 32) {
+        memcpy(out,in,length*sizeof(uint32_t));
+        return (__m128i *)((uint32_t *) out + length);
+    }
+    inwordpointer = 0;
+    P = _mm_setzero_si128();
+    for(k = 0; k < length / 4 ; ++k) {
+        __m128i value = _mm_loadu_si128(((const __m128i * ) in + k));
+        P = _mm_or_si128(P,_mm_slli_epi32(value, inwordpointer));
+        firstpass = sizeof(uint32_t) * 8 - inwordpointer;
+        if(bit<firstpass) {
+            inwordpointer+=bit;
+        } else {
+            _mm_storeu_si128(out++, P);
+            P = _mm_srli_epi32(value, firstpass);
+            inwordpointer=bit-firstpass;
+        }
+    }
+    if(length % 4 != 0) {
+        uint32_t buffer[4];
+        __m128i value;
+        for(k = 0; k < (length % 4); ++k) {
+            buffer[k] = in[length/4*4+k];
+        }
+        for(k = (length % 4); k < 4 ; ++k) {
+            buffer[k] = 0;
+        }
+        value = _mm_loadu_si128((__m128i * ) buffer);
+        P = _mm_or_si128(P,_mm_slli_epi32(value, inwordpointer));
+        firstpass = sizeof(uint32_t) * 8 - inwordpointer;
+        if(bit<firstpass) {
+            inwordpointer+=bit;
+        } else {
+            _mm_storeu_si128(out++, P);
+            P = _mm_srli_epi32(value, firstpass);
+            inwordpointer=bit-firstpass;
+        }
+    }
+    if(inwordpointer != 0) {
+        _mm_storeu_si128(out++, P);
+    }
+    return out;
+}
+
+
+
+const __m128i * simdunpack_shortlength(const __m128i *   in, int length, uint32_t * out, const uint32_t bit) {
+    int k;
+    __m128i maskbits;
+    int inwordpointer;
+    __m128i P;
+    if(length == 0) return in;
+    if(bit == 0) {
+        for(k = 0; k < length; ++k) {
+            out[k] = 0;
+        }
+        return in;
+    }
+    if(bit == 32) {
+        memcpy(out,in,length*sizeof(uint32_t));
+        return (const __m128i *) ((uint32_t *) in + length);
+    }
+    maskbits = _mm_set1_epi32((1<<bit)-1);
+    inwordpointer = 0;
+    P = _mm_loadu_si128((__m128i * ) in);
+    ++in;
+    for(k = 0; k < length  / 4; ++k) {
+        __m128i answer = _mm_srli_epi32(P, inwordpointer);
+        const uint32_t firstpass = sizeof(uint32_t) * 8 - inwordpointer;
+        if(bit < firstpass) {
+            inwordpointer += bit;
+        } else {
+            P = _mm_loadu_si128((__m128i * ) in);
+            ++in;
+            answer = _mm_or_si128(_mm_slli_epi32(P, firstpass),answer);
+            inwordpointer = bit - firstpass;
+        }
+        answer = _mm_and_si128(maskbits,answer);
+        _mm_storeu_si128((__m128i *)out, answer);
+        out += 4;
+    }
+    if(length % 4 != 0) {
+        uint32_t buffer[4];
+    	__m128i answer = _mm_srli_epi32(P, inwordpointer);
+        const uint32_t firstpass = sizeof(uint32_t) * 8 - inwordpointer;
+        if(bit < firstpass) {
+            inwordpointer += bit;
+        } else {
+            P = _mm_loadu_si128((__m128i * ) in);
+            ++in;
+            answer = _mm_or_si128(_mm_slli_epi32(P, firstpass),answer);
+            inwordpointer = bit - firstpass;
+        }
+        answer = _mm_and_si128(maskbits,answer);
+        _mm_storeu_si128((__m128i *)buffer, answer);
+        for(k = 0; k < (length % 4); ++k) {
+            *out = buffer[k];
+            ++out;
+        }
+    }
+    return in;
+}
+
+void simdfastset(__m128i * in128, uint32_t b, uint32_t value, size_t index) {
+    uint32_t * in = (uint32_t *) in128;
+    const int lane = index % 4; /* we have 4 interleaved lanes */
+    const int bitsinlane = (index / 4) * b; /* how many bits in lane */
+    const int firstwordinlane = bitsinlane / 32;
+    const int secondwordinlane = (bitsinlane + b - 1) / 32;
+    const uint32_t mask = (1 << b) - 1;
+
+    in[4 * firstwordinlane + lane] &= ~(mask << (bitsinlane % 32));/* we zero */
+    in[4 * firstwordinlane + lane] |= (value << (bitsinlane % 32));/* we write */
+    if (firstwordinlane == secondwordinlane) {
+        /* easy common case*/
+        return;
+    } else {
+        /* harder case where we need to combine two words */
+        const int firstbits =  32 - (bitsinlane % 32) ;
+        const int usablebits = b - firstbits;
+        const uint32_t mask2 = (1 << usablebits) - 1;
+        in[4 * firstwordinlane + 4 + lane] &= ~mask2;/* we zero */
+        in[4 * firstwordinlane + 4 + lane] |= value >> firstbits;/* we write */
+        return;
+    }
+}
+
+__m128i * simdpack_length(const uint32_t *   in, size_t length, __m128i *    out, const uint32_t bit) {
+    size_t k;
+    for(k = 0; k < length / SIMDBlockSize; ++k) {
+        simdpack(in, out, bit);
+        in += SIMDBlockSize;
+        out += bit;
+    }
+    return simdpack_shortlength(in, length % SIMDBlockSize, out, bit);
+}
+
+const __m128i * simdunpack_length(const __m128i *   in, size_t length, uint32_t * out, const uint32_t bit) {
+    size_t k;
+    for(k = 0; k < length / SIMDBlockSize; ++k) {
+        simdunpack(in, out, bit);
+        out += SIMDBlockSize;
+        in += bit;
+    }
+    return simdunpack_shortlength(in, length % SIMDBlockSize, out, bit);
+}
