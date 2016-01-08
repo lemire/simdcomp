@@ -24867,6 +24867,8 @@ void simdfastsetd1fromprevious( __m128i * in, uint32_t bit, uint32_t previousval
 	simdfastset(in, bit, value - previousvalue, index);
 }
 
+#ifdef __SSE4_1__
+
 void simdfastsetd1(uint32_t initvalue, __m128i * in, uint32_t bit, uint32_t value, size_t index) {
 	if(index == 0) {
 		simdfastset(in, bit, value - initvalue, index);
@@ -24875,3 +24877,6 @@ void simdfastsetd1(uint32_t initvalue, __m128i * in, uint32_t bit, uint32_t valu
 		simdfastset(in, bit, value - prev, index);
 	}
 }
+
+#endif
+

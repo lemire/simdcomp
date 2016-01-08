@@ -130,6 +130,8 @@ int testset() {
 	return 0;
 }
 
+#ifdef __SSE4_1__
+
 int testsetd1() {
 	int bit;
 	size_t i;
@@ -175,7 +177,7 @@ int testsetd1() {
 
 	return 0;
 }
-
+#endif
 
 int testsetFOR() {
 	int bit;
@@ -317,6 +319,7 @@ int test() {
     return 0;
 }
 
+#ifdef __SSE4_1__
 int testFOR() {
     int N = 5000 * SIMDBlockSize, gap;
     __m128i * buffer = malloc(SIMDBlockSize * sizeof(uint32_t));
@@ -362,6 +365,7 @@ int testFOR() {
     printf("Code looks good.\n");
     return 0;
 }
+#endif
 
 #define MAX 300
 int test_simdmaxbitsd1_length() {
@@ -405,7 +409,7 @@ int uint32_cmp(const void *a, const void *b)
     return 0;
 }
 
-
+#ifdef __SSE4_1__
 int test_simdpackedsearch() {
     uint32_t buffer[128];
     uint32_t result = 0;
@@ -487,7 +491,6 @@ int test_simdpackedsearchFOR() {
     printf("simdsearchFOR: ok\n");
     return 0;
 }
-
 
 int test_simdpackedsearch_advanced() {
     uint32_t buffer[128];
@@ -655,6 +658,7 @@ int test_simdpackedselect_advanced() {
     printf("advanced simdselectd1: ok\n");
     return 0;
 }
+#endif
 
 
 int main() {
@@ -662,10 +666,12 @@ int main() {
     r =  testsetFOR();
     if (r)
          return r;
+
+#ifdef __SSE4_1__
     r =  testsetd1();
     if (r)
          return r;
-
+#endif
     r =  testset();
     if (r)
          return r;
@@ -679,7 +685,7 @@ int main() {
     r = testlongpack();
     if (r)
     	return r;
-
+#ifdef __SSE4_1__
     r = test_simdpackedsearchFOR();
     if (r)
         return r;
@@ -687,6 +693,7 @@ int main() {
     r = testFOR();
     if (r)
         return r;
+#endif 
     r = test();
     if (r)
         return r;
@@ -694,7 +701,7 @@ int main() {
     r = test_simdmaxbitsd1_length();
     if (r)
         return r;
-
+#ifdef __SSE4_1__
     r = test_simdpackedsearch();
     if (r)
         return r;
@@ -703,7 +710,6 @@ int main() {
     if (r)
         return r;
 
-
     r = test_simdpackedselect();
     if (r)
         return r;
@@ -711,6 +717,7 @@ int main() {
     r = test_simdpackedselect_advanced();
     if (r)
         return r;
+#endif
 
 
     return 0;

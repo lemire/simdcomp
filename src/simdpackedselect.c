@@ -1,6 +1,7 @@
 /**
  * This code is released under a BSD License.
  */
+#ifdef __SSE4_1__
 #include "simdintegratedbitpacking.h"
 #include <smmintrin.h>
 
@@ -15486,4 +15487,4 @@ simdscand1(__m128i * initOffset, const __m128i *in, uint32_t bit)
    return ;
 }
 
-
+#endif

@@ -31,14 +31,14 @@ uint32_t simdmin(const uint32_t * in);
 /* computes (quickly) the minimal value of the specified number of values */
 uint32_t simdmin_length(const uint32_t * in, uint32_t length);
 
-
+#ifdef __SSE4_1__
 /* computes (quickly) the minimal and maximal value of the specified number of values */
 void simdmaxmin_length(const uint32_t * in, uint32_t length, uint32_t * getmin, uint32_t * getmax);
 
 /* computes (quickly) the minimal and maximal value of the 128 values */
 void simdmaxmin(const uint32_t * in, uint32_t * getmin, uint32_t * getmax);
 
-
+#endif
 
 /* like maxbit over 128 integers (SIMDBlockSize) with provided initial value 
    and using differential coding */

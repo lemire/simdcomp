@@ -3,7 +3,9 @@
  */
 
 #include "simdcomputil.h"
+#ifdef __SSE4_1__
 #include <smmintrin.h>
+#endif
 #include <assert.h>
 
 #define Delta(curr, prev) \
@@ -48,6 +50,8 @@ static uint32_t orasint(const __m128i accumulator) {
 	const __m128i _tmp2 = _mm_or_si128(_mm_srli_si128(_tmp1, 4), _tmp1); /*  (A,B,C xor A,D xor B) xor  (0,0,0,C xor A)*/
 	return  _mm_cvtsi128_si32(_tmp2);
 }
+
+#ifdef __SSE4_1__
 
 static uint32_t minasint(const __m128i accumulator) {
 	const __m128i _tmp1 = _mm_min_epu32(_mm_srli_si128(accumulator, 8), accumulator); /* (A,B,C,D) xor (0,0,A,B) = (A,B,C xor A,D xor B)*/
@@ -135,7 +139,7 @@ void simdmaxmin_length(const uint32_t * in, uint32_t length, uint32_t * getmin, 
 	}
 }
 
-
+#endif
 
 SIMDCOMP_PURE uint32_t maxbits_length(const uint32_t * in,uint32_t length) {
 	  uint32_t k;
