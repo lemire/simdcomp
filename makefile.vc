@@ -100,4 +100,5 @@ clean:
 	del /Q *.dll
 	del /Q *.pgc
 	del /Q *.pgd
+	del /Q *.pdb
 

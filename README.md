@@ -10,6 +10,8 @@ desktop or laptop processors. That is, it can decompress data at a rate of 15 GB
 This is significantly faster than generic codecs like gzip, LZO, Snappy or LZ4.
 
 
+Contributors: Daniel Lemire, Nathan Kurz, Christoph Rupp, Anatol Belski, Nick White and others
+
 What is it for?
 -------------
 
