@@ -99,7 +99,7 @@ uint32_t simdmin_length(const uint32_t * in, uint32_t length) {
 	if (lengthdividedby4 > 0) {
 		const __m128i* pin = (const __m128i*)(in);
 		__m128i accumulator = _mm_loadu_si128(pin);
-		uint32_t k = 1;
+		k = 1;
 		for(; 4*k < lengthdividedby4 * 4; ++k) {
 			__m128i newvec = _mm_loadu_si128(pin+k);
 			accumulator = _mm_min_epu32(accumulator,newvec);
@@ -122,7 +122,7 @@ void simdmaxmin_length(const uint32_t * in, uint32_t length, uint32_t * getmin, 
 		const __m128i* pin = (const __m128i*)(in);
 		__m128i minaccumulator = _mm_loadu_si128(pin);
 		__m128i maxaccumulator = minaccumulator;
-		uint32_t k = 1;
+		k = 1;
 		for(; 4*k < lengthdividedby4 * 4; ++k) {
 			__m128i newvec = _mm_loadu_si128(pin+k);
 			minaccumulator = _mm_min_epu32(minaccumulator,newvec);
