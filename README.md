@@ -22,6 +22,7 @@ Requirements
 -------------
 
 - Your processor should support SSE4.1 (It is supported by most Intel and AMD processors released since 2008.)
+- It is possible to build the core part of the code if your processor support SSE2 (Pentium4 or better)
 - C99 compliant compiler (GCC is assumed)
 - A Linux-like distribution is assumed by the makefile
 
