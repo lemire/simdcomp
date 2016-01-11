@@ -63,7 +63,7 @@ size_t compress(uint32_t * datain, size_t length, uint8_t * buffer) {
 /* Another illustration ... */
 void simple_demo() {
   size_t REPEAT = 10, gap;
-  size_t N = 1000000 * SIMDBlockSize;/* SIMDBlockSize is 128 */
+  size_t N = 1000 * SIMDBlockSize;/* SIMDBlockSize is 128 */
   uint32_t * datain = malloc(N * sizeof(uint32_t));
   size_t compsize;
   clock_t start, end;
