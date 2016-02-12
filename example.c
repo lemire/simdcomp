@@ -1,3 +1,4 @@
+/* Type "make example" to build this example program. */
 #include <stdio.h>
 #include <time.h>
 #include <stdlib.h>
@@ -11,8 +12,11 @@ We provide several different code examples.
 /* very simple test to illustrate a simple application */
 int compress_decompress_demo() {
     size_t k, N = 9999;
+    __m128i * endofbuf;
+    int howmanybytes;
+    float compratio;
     uint32_t * datain = malloc(N * sizeof(uint32_t));
-    uint8_t * buffer = malloc(N * sizeof(uint32_t) + N / SIMDBlockSize);
+    uint8_t * buffer;
     uint32_t * backbuffer = malloc(N * sizeof(uint32_t));
     uint32_t b;
     printf("== simple test\n");
@@ -22,9 +26,15 @@ int compress_decompress_demo() {
     }
 
     b = maxbits_length(datain, N);
-    simdpack_length(datain, N, (__m128i *)buffer, b);
-    // in actual applications b must be stored and retrieved: caller is responsible for that.
-    simdunpack_length((const __m128i *)buffer, N, backbuffer, b);
+    buffer = malloc(simdpack_compressedbytes(N,b));
+    endofbuf = simdpack_length(datain, N, (__m128i *)buffer, b);
+    howmanybytes = (endofbuf-(__m128i *)buffer)*sizeof(__m128i); /* number of compressed bytes */
+    compratio = N*sizeof(uint32_t) * 1.0 / howmanybytes;
+    /* endofbuf points to the end of the compressed data */
+    buffer = realloc(buffer,(endofbuf-(__m128i *)buffer)*sizeof(__m128i)); /* optional but safe. */
+    printf("Compressed %d integers down to %d bytes (comp. ratio = %f).\n",(int)N,howmanybytes,compratio);
+    /* in actual applications b must be stored and retrieved: caller is responsible for that. */
+    simdunpack_length((const __m128i *)buffer, N, backbuffer, b); /* will return a pointer to endofbuf */ 
 
     for (k = 0; k < N; ++k) {
         if(datain[k] != backbuffer[k]) {

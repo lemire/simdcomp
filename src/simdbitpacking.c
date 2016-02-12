@@ -14154,6 +14154,14 @@ void simdfastset(__m128i * in128, uint32_t b, uint32_t value, size_t index) {
     }
 }
 
+int simdpack_compressedbytes(int length, const uint32_t bit) {
+	if(bit == 0) return 0;/* nothing to do */
+    if(bit == 32) {
+        return length * sizeof(uint32_t);
+    }
+    return (((length + 3 )/ 4) * bit + 31 ) / 32 * sizeof(__m128i);
+}
+
 __m128i * simdpack_length(const uint32_t *   in, size_t length, __m128i *    out, const uint32_t bit) {
     size_t k;
     for(k = 0; k < length / SIMDBlockSize; ++k) {
