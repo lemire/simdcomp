@@ -14327,7 +14327,9 @@ void simdunpackFOR(uint32_t initvalue, const __m128i *   in, uint32_t * out, con
 uint32_t simdselectFOR(uint32_t initvalue, const __m128i *in, uint32_t bit,
                 int slot) {
 	const uint32_t * pin = (const uint32_t *) in;
-	if (bit == 32) {
+	if( bit == 0) {
+                return initvalue;
+        } else if (bit == 32) {
 		/* silly special case */
 		return pin[slot];
 	} else {

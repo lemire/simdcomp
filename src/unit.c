@@ -174,7 +174,7 @@ int testsetd1() {
 	free(data);
 	free(backdata);
 	free(buffer);
-
+        free(datazeroes);
 	return 0;
 }
 #endif
@@ -218,7 +218,7 @@ int testsetFOR() {
 	free(data);
 	free(backdata);
 	free(buffer);
-
+        free(datazeroes);
 	return 0;
 }
 

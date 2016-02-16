@@ -3,7 +3,7 @@
 #
 .SUFFIXES: .cpp .o .c .h
 ifeq ($(DEBUG),1)
-CFLAGS = -fPIC  -std=c89 -ggdb -msse4.1 -march=native -Wall -Wextra -pedantic -Wshadow
+CFLAGS = -fPIC  -std=c89 -ggdb -msse4.1 -march=native -Wall -Wextra -pedantic -Wshadow -fsanitize=undefined  -fno-omit-frame-pointer -fsanitize=address
 else
 CFLAGS = -fPIC -std=c89 -O3 -msse4.1  -march=native -Wall -Wextra -pedantic -Wshadow
 endif # debug
