@@ -40,7 +40,7 @@ run it with "make example; ./example").
 
 ```C            
 const uint32_t b = maxbits(datain);// computes bit width
-simdpackwithoutmask(datain, buffer, b);//compressed to buffer
+simdpackwithoutmask(datain, buffer, b);//compressed to buffer, compressing 128 32-bit integers down to b*32 bytes
 simdunpack(buffer, backbuffer, b);//uncompressed to backbuffer
 ```
 
@@ -53,7 +53,7 @@ We used differential coding: we store the difference between successive integers
 ```C            
 uint32_t offset = 0;
 uint32_t b1 = simdmaxbitsd1(offset,datain); // bit width
-simdpackwithoutmaskd1(offset, datain, buffer, b1);//compressed
+simdpackwithoutmaskd1(offset, datain, buffer, b1);//compressing 128 32-bit integers down to b1*32 bytes
 simdunpackd1(offset, buffer, backbuffer, b1);//uncompressed
 ```
 
@@ -61,8 +61,9 @@ General example for arrays of arbitrary length:
 ```C
 int compress_decompress_demo() {
   size_t k, N = 9999;
+  __m128i * endofbuf;
   uint32_t * datain = malloc(N * sizeof(uint32_t));
-  uint8_t * buffer = malloc(N * sizeof(uint32_t) + N / SIMDBlockSize);
+  uint8_t * buffer;
   uint32_t * backbuffer = malloc(N * sizeof(uint32_t));
   uint32_t b;
 
@@ -71,7 +72,10 @@ int compress_decompress_demo() {
   }
 
   b = maxbits_length(datain, N);
-  simdpack_length(datain, N, (__m128i *)buffer, b);
+  buffer = malloc(simdpack_compressedbytes(N,b)); // allocate just enough memory
+  endofbuf = simdpack_length(datain, N, (__m128i *)buffer, b);
+  /* compressed data is stored between buffer and endofbuf using (endofbuf-buffer)*sizeof(__m128i) bytes */
+  /* would be safe to do : buffer = realloc(buffer,(endofbuf-(__m128i *)buffer)*sizeof(__m128i)); */
   simdunpack_length((const __m128i *)buffer, N, backbuffer, b);
 
   for (k = 0; k < N; ++k){
@@ -83,6 +87,13 @@ int compress_decompress_demo() {
   return 0;
 }
 ```
+
+
+3) Frame-of-Reference 
+
+We also have frame-of-reference (FOR) functions (see simdfor.h header). They work like the bit packing
+routines, but do not use differential coding so they allow faster search in some cases, at the expense
+of compression.
 
 Setup
 ---------

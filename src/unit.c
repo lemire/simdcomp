@@ -11,7 +11,9 @@ int testshortpack() {
 	int bit;
 	size_t i;
 	size_t length;
+	__m128i * bb;
 	srand(0);
+	printf("testshortpack\n");
 	for (bit = 0; bit < 32; ++bit) {
 		const size_t N = 128;
 		uint32_t * data = malloc(N * sizeof(uint32_t));
@@ -25,14 +27,20 @@ int testshortpack() {
 			for (i = 0; i < N; ++i) {
 				backdata[i] = 0;
 			}
-			simdpack_shortlength(data, length, (__m128i *) buffer,
+			bb = simdpack_shortlength(data, length, (__m128i *) buffer,
 					bit);
+			if((bb - (__m128i *) buffer) * sizeof(__m128i) != (unsigned) simdpack_compressedbytes(length,bit)) {
+			 printf("bug\n");
+			 return -1;
+			}
 			simdunpack_shortlength((__m128i *) buffer, length,
 					backdata, bit);
 			for (i = 0; i < length; ++i) {
 
-				if (data[i] != backdata[i])
+				if (data[i] != backdata[i]) {
+				    printf("bug\n");
 					return -1;
+				}
 			}
 		}
 		free(data);
@@ -46,7 +54,9 @@ int testlongpack() {
 	int bit;
 	size_t i;
 	size_t length;
+	__m128i * bb;
 	srand(0);
+	printf("testlongpack\n");
 	for (bit = 0; bit < 32; ++bit) {
 		const size_t N = 2048;
 		uint32_t * data = malloc(N * sizeof(uint32_t));
@@ -60,14 +70,20 @@ int testlongpack() {
 			for (i = 0; i < N; ++i) {
 				backdata[i] = 0;
 			}
-			simdpack_length(data, length, (__m128i *) buffer,
+			bb = simdpack_length(data, length, (__m128i *) buffer,
 					bit);
+			if((bb - (__m128i *) buffer) * sizeof(__m128i) != (unsigned) simdpack_compressedbytes(length,bit)) {
+			 printf("bug\n");
+			 return -1;
+			}
 			simdunpack_length((__m128i *) buffer, length,
 					backdata, bit);
 			for (i = 0; i < length; ++i) {
 
-				if (data[i] != backdata[i])
+				if (data[i] != backdata[i]) {
+				    printf("bug\n");
 					return -1;
+				}
 			}
 		}
 		free(data);
@@ -88,6 +104,7 @@ int testset() {
 	uint32_t * buffer = malloc((2 * N + 1024) * sizeof(uint32_t));
 
 	srand(0);
+
 	for (bit = 0; bit < 32; ++bit) {
 		printf("simple set %d \n",bit);
 
@@ -100,8 +117,10 @@ int testset() {
 		simdpack(data, (__m128i *) buffer, bit);
 		simdunpack((__m128i *) buffer, backdata, bit);
 		for (i = 0; i < N; ++i) {
-			if (data[i] != backdata[i])
+			if (data[i] != backdata[i]) {
+			    printf("bug\n");
 				return -1;
+			}
 		}
 
 		for(i = N  ; i > 0; i--) {
@@ -109,8 +128,10 @@ int testset() {
 		}
 		simdunpack((__m128i *) buffer, backdata, bit);
 		for (i = 0; i < N; ++i) {
-			if (data[i] != backdata[N - i - 1])
+			if (data[i] != backdata[N - i - 1]) {
+			    printf("bug\n");
 				return -1;
+			}
 		}
 		simdpack(data, (__m128i *) buffer, bit);
 		for(i = 1  ; i <= N; i++) {
@@ -118,8 +139,10 @@ int testset() {
 		}
 		simdunpack((__m128i *) buffer, backdata, bit);
 		for (i = 0; i < N; ++i) {
-			if (data[i] != backdata[i])
+			if (data[i] != backdata[i]) {
+			    printf("bug\n");
 				return -1;
+			}
 		}
 
 	}
@@ -225,6 +248,7 @@ int testsetFOR() {
 int testshortFORpack() {
 	int bit;
 	size_t i;
+	__m128i * rb;
 	size_t length;
 	uint32_t offset = 7;
 	srand(0);
@@ -241,8 +265,11 @@ int testshortFORpack() {
 			for (i = 0; i < N; ++i) {
 				backdata[i] = 0;
 			}
-			simdpackFOR_length(offset,data, length, (__m128i *) buffer,
+			rb = simdpackFOR_length(offset,data, length, (__m128i *) buffer,
 					bit);
+		    if(((rb - (__m128i *) buffer)*sizeof(__m128i)) != (unsigned) simdpackFOR_compressedbytes(length,bit)) {
+		      return -1;
+		    }
 			simdunpackFOR_length(offset,(__m128i *) buffer, length,
 					backdata, bit);
 			for (i = 0; i < length; ++i) {
@@ -664,60 +691,89 @@ int test_simdpackedselect_advanced() {
 int main() {
     int r;
     r =  testsetFOR();
-    if (r)
+    if (r) {
+         printf("test failure 1\n");
          return r;
+    }
 
 #ifdef __SSE4_1__
     r =  testsetd1();
-    if (r)
+    if (r) {
+         printf("test failure 2\n");
          return r;
+    }
 #endif
     r =  testset();
-    if (r)
+    if (r) {
+         printf("test failure 3\n");
          return r;
+    }
 
     r = testshortFORpack();
-    if (r)
+    if (r) {
+         printf("test failure 4\n");
          return r;
+    }
     r = testshortpack();
-    if (r)
-        return r;
+    if (r) {
+         printf("test failure 5\n");
+         return r;
+    }
     r = testlongpack();
-    if (r)
-    	return r;
+    if (r) {
+         printf("test failure 6\n");
+         return r;
+    }
 #ifdef __SSE4_1__
     r = test_simdpackedsearchFOR();
-    if (r)
-        return r;
+    if (r) {
+         printf("test failure 7\n");
+         return r;
+    }
 
     r = testFOR();
-    if (r)
-        return r;
+    if (r) {
+         printf("test failure 8\n");
+         return r;
+    }
 #endif 
     r = test();
-    if (r)
-        return r;
+    if (r) {
+         printf("test failure 9\n");
+         return r;
+    }
 
     r = test_simdmaxbitsd1_length();
-    if (r)
-        return r;
+    if (r) {
+         printf("test failure 10\n");
+         return r;
+    }
 #ifdef __SSE4_1__
     r = test_simdpackedsearch();
-    if (r)
-        return r;
+    if (r) {
+         printf("test failure 11\n");
+         return r;
+    }
 
     r = test_simdpackedsearch_advanced();
-    if (r)
-        return r;
+    if (r) {
+         printf("test failure 12\n");
+         return r;
+    }
 
     r = test_simdpackedselect();
-    if (r)
-        return r;
+    if (r) {
+         printf("test failure 13\n");
+         return r;
+    }
 
     r = test_simdpackedselect_advanced();
-    if (r)
-        return r;
+    if (r) {
+         printf("test failure 14\n");
+         return r;
+    }
 #endif
+    printf("All tests OK!\n");
 
 
     return 0;

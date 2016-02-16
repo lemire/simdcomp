@@ -14375,6 +14375,13 @@ int simdsearchwithlengthFOR(uint32_t initvalue, const __m128i *in, uint32_t bit,
 	return begin;
 }
 
+int simdpackFOR_compressedbytes(int length, const uint32_t bit) {
+	if(bit == 0) return 0;/* nothing to do */
+    if(bit == 32) {
+        return length * sizeof(uint32_t);
+    }
+    return (((length + 3 )/ 4) * bit + 31 ) / 32 * sizeof(__m128i);
+}
 
 __m128i * simdpackFOR_length(uint32_t initvalue, const uint32_t *   in, int length, __m128i *    out, const uint32_t bit) {
 	int k;
