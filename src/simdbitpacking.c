@@ -14130,7 +14130,7 @@ void simdfastset(__m128i * in128, uint32_t b, uint32_t value, size_t index) {
     const int firstwordinlane = bitsinlane / 32;
     const int secondwordinlane = (bitsinlane + b - 1) / 32;
     const uint32_t mask = (1 << b) - 1;
-
+    if (b == 0) return;
     /* we zero */
     if (b == 32)
       in[4 * firstwordinlane + lane] = 0;

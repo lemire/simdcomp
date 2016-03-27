@@ -43,6 +43,9 @@ int compress_decompress_demo() {
         }
     }
     printf("Code works!\n");
+    free(datain);
+    free(buffer);
+    free(backbuffer);
     return 0;
 }
 
@@ -151,6 +154,7 @@ int varying_bit_width_demo() {
     size_t nn = 128 * 2;
     uint32_t * datainn = malloc(nn * sizeof(uint32_t));
     uint8_t * buffern = malloc(nn * sizeof(uint32_t) + nn / SIMDBlockSize);
+    uint8_t * initbuffern = buffern;
     uint32_t * backbuffern = malloc(nn * sizeof(uint32_t));
     size_t k, compsize;
     printf("== varying bit-width demo\n");
@@ -177,6 +181,9 @@ int varying_bit_width_demo() {
         }
     }
     printf("Code works!\n");
+    free(datainn);
+    free(initbuffern);
+    free(backbuffern);
     return 0;
 }
 
