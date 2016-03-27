@@ -114,12 +114,12 @@ If you are a go user, there is a "go" folder where you will find a simple demo.
 Other libraries
 ----------------
 
-FastPFOR is a C++ research library well suited to compress unsorted arrays:
-https://github.com/lemire/FastPFor
+* FastPFOR is a C++ research library well suited to compress unsorted arrays: https://github.com/lemire/FastPFor
+* SIMDCompressionAndIntersection is a C++ research library well suited for sorted arrays (differential coding)
+and computing intersections: https://github.com/lemire/SIMDCompressionAndIntersection
+* TurboPFor is a C library that offers lots of interesting optimizations. Well worth checking! (GPL license) https://github.com/powturbo/TurboPFor
+* Oroch is a C++ library that offers a usable API (MIT license) https://github.com/ademakov/Oroch
 
-SIMDCompressionAndIntersection is a C++ research library well suited for sorted arrays (differential coding)
-and computing intersections:
-https://github.com/lemire/SIMDCompressionAndIntersection
 
 References
 ------------
