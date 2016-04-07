@@ -26,6 +26,8 @@ Requirements
 - C99 compliant compiler (GCC is assumed)
 - A Linux-like distribution is assumed by the makefile
 
+For a plain C version that does not use SIMD instructions, see https://github.com/lemire/LittleIntPacker
+
 Usage
 -------
 
