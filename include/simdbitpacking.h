@@ -20,10 +20,12 @@
 
 
 
-/* reads 128 values from "in", writes  "bit" 128-bit vectors to "out" */
+/* reads 128 values from "in", writes  "bit" 128-bit vectors to "out".
+ * The input values are masked so that only the least significant "bit" bits are used. */
 void simdpack(const uint32_t *  in,__m128i *  out, const uint32_t bit);
 
-/* reads 128 values from "in", writes  "bit" 128-bit vectors to "out" */
+/* reads 128 values from "in", writes  "bit" 128-bit vectors to "out".
+ * The input values are assumed to be less than 1<<bit. */
 void simdpackwithoutmask(const uint32_t *  in,__m128i *  out, const uint32_t bit);
 
 /* reads  "bit" 128-bit vectors from "in", writes  128 values to "out" */

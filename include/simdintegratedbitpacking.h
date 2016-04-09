@@ -18,12 +18,14 @@ extern "C" {
 #endif
 
 /* reads 128 values from "in", writes  "bit" 128-bit vectors to "out"
-   integer values should be in sorted order (for best results) */
+   integer values should be in sorted order (for best results).
+   The differences are masked so that only the least significant "bit" bits are used. */
 void simdpackd1(uint32_t initvalue, const uint32_t *  in,__m128i *  out, const uint32_t bit);
 
 
 /* reads 128 values from "in", writes  "bit" 128-bit vectors to "out"
-   integer values should be in sorted order (for best results) */
+   integer values should be in sorted order (for best results).
+   The difference values are assumed to be less than 1<<bit. */
 void simdpackwithoutmaskd1(uint32_t initvalue, const uint32_t *  in,__m128i *  out, const uint32_t bit);
 
 

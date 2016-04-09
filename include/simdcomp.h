@@ -13,6 +13,7 @@ extern "C" {
 #include "simdcomputil.h"
 #include "simdfor.h"
 #include "simdintegratedbitpacking.h"
+#include "avxbitpacking.h"
 
 #ifdef __cplusplus
 } // extern "C"

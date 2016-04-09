@@ -7,6 +7,7 @@
 #include "simdcomp.h"
 
 
+
 int testshortpack() {
 	int bit;
 	size_t i;
@@ -285,6 +286,112 @@ int testshortFORpack() {
 	return 0;
 }
 
+
+#ifdef __AVX2__
+
+int testbabyavx() {
+	int bit;
+	int trial;
+	unsigned int i,j;
+	const size_t N = AVXBlockSize;
+	srand(0);
+	printf("testbabyavx\n");
+	printf("bit = ");
+	for (bit = 0; bit < 32; ++bit) {
+		printf(" %d ",bit);
+		fflush(stdout);
+		for(trial = 0; trial < 100; ++trial) {
+			uint32_t * data = malloc(N * sizeof(uint32_t)+ 64 * sizeof(uint32_t));
+			uint32_t * backdata = malloc(N * sizeof(uint32_t) + 64 * sizeof(uint32_t) );
+			__m256i * buffer = malloc((2 * N + 1024) * sizeof(uint32_t) + 32);
+
+			for (i = 0; i < N; ++i) {
+				data[i] = rand() & ((uint32_t)(1 << bit) - 1);
+			}
+			for (i = 0; i < N; ++i) {
+				backdata[i] = 0;
+			}
+            if(avxmaxbits(data) != maxbits_length(data,N)) {
+            	printf("avxmaxbits is buggy\n");
+				return -1;
+            }
+
+			avxpackwithoutmask(data, buffer, bit);
+			avxunpack(buffer, backdata, bit);
+			for (i = 0; i < AVXBlockSize; ++i) {
+				if (data[i] != backdata[i]) {
+					printf("bug\n");
+					for (j = 0; j < N; ++j) {
+						if (data[j] != backdata[j]) {
+							printf("data[%d]=%d v.s. backdata[%d]=%d\n",j,data[j],j,backdata[j]);
+						} else {
+							printf("data[%d]=%d\n",j,data[j]);
+						}
+					}
+					return -1;
+				}
+			}
+			free(data);
+			free(backdata);
+			free(buffer);
+		}
+	}
+	printf("\n");
+	return 0;
+}
+
+int testavx2() {
+    int N = 5000 * AVXBlockSize, gap;
+    __m256i * buffer = malloc(AVXBlockSize * sizeof(uint32_t));
+    uint32_t * datain = malloc(N * sizeof(uint32_t));
+    uint32_t * backbuffer = malloc(AVXBlockSize * sizeof(uint32_t));
+    for (gap = 1; gap <= 387420489; gap *= 3) {
+        int k;
+        printf(" gap = %u \n", gap);
+        for (k = 0; k < N; ++k)
+            datain[k] = k * gap;
+        for (k = 0; k * AVXBlockSize < N; ++k) {
+            /*
+               First part works for general arrays (sorted or unsorted)
+            */
+            int j;
+       	    /* we compute the bit width */
+            const uint32_t b = avxmaxbits(datain + k * AVXBlockSize);
+            if(avxmaxbits(datain + k * AVXBlockSize) != maxbits_length(datain + k * AVXBlockSize,AVXBlockSize)) {
+            	printf("avxmaxbits is buggy %d %d \n",
+            			avxmaxbits(datain + k * AVXBlockSize),
+						maxbits_length(datain + k * AVXBlockSize,AVXBlockSize));
+				return -1;
+            }
+            printf("bit width = %d\n",b);
+
+
+            /* we read 256 integers at "datain + k * AVXBlockSize" and
+               write b 256-bit vectors at "buffer" */
+            avxpackwithoutmask(datain + k * AVXBlockSize, buffer, b);
+            /* we read back b1 128-bit vectors at "buffer" and write 128 integers at backbuffer */
+			avxunpack(buffer, backbuffer, b);/* uncompressed */
+			for (j = 0; j < AVXBlockSize; ++j) {
+				if (backbuffer[j] != datain[k * AVXBlockSize + j]) {
+					int i;
+					printf("bug in avxpack\n");
+					for(i = 0; i < AVXBlockSize; ++i) {
+						printf("data[%d]=%d got back %d %s\n",i,
+								datain[k * AVXBlockSize + i],backbuffer[i],
+								datain[k * AVXBlockSize + i]!=backbuffer[i]?"bug":"");
+					}
+					return -2;
+				}
+			}
+        }
+    }
+    free(buffer);
+    free(datain);
+    free(backbuffer);
+    printf("Code looks good.\n");
+    return 0;
+}
+#endif /* avx2 */
 
 int test() {
     int N = 5000 * SIMDBlockSize, gap;
@@ -736,7 +843,20 @@ int main() {
          printf("test failure 8\n");
          return r;
     }
-#endif 
+#endif
+#ifdef __AVX2__
+    r= testbabyavx();
+    if (r) {
+         printf("test failure baby avx\n");
+         return r;
+    }
+
+    r = testavx2();
+    if (r) {
+         printf("test failure 9 avx\n");
+         return r;
+    }
+#endif
     r = test();
     if (r) {
          printf("test failure 9\n");
