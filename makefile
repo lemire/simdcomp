@@ -9,7 +9,7 @@ CFLAGS = -fPIC -std=c89 -O3 -msse4.1  -march=native -Wall -Wextra -pedantic -Wsh
 endif # debug
 LDFLAGS = -shared
 LIBNAME=libsimdcomp.so.0.0.3
-all:  unit unit_chars $(LIBNAME)
+all:  unit unit_chars bitpackingbenchmark $(LIBNAME)
 test:
 	./unit
 	./unit_chars
@@ -66,6 +66,8 @@ example: ./example.c    $(HEADERS) $(OBJECTS)
 unit: ./tests/unit.c    $(HEADERS) $(OBJECTS)
 	$(CC) $(CFLAGS) -o unit ./tests/unit.c -Iinclude  $(OBJECTS)
 
+bitpackingbenchmark: ./benchmarks/bitpackingbenchmark.c    $(HEADERS) $(OBJECTS)
+	$(CC) $(CFLAGS) -o bitpackingbenchmark ./benchmarks/bitpackingbenchmark.c -Iinclude  $(OBJECTS)
 benchmark: ./benchmarks/benchmark.c    $(HEADERS) $(OBJECTS)
 	$(CC) $(CFLAGS) -o benchmark ./benchmarks/benchmark.c -Iinclude  $(OBJECTS)
 dynunit: ./tests/unit.c    $(HEADERS) $(LIBNAME)
@@ -74,4 +76,4 @@ dynunit: ./tests/unit.c    $(HEADERS) $(LIBNAME)
 unit_chars: ./tests/unit_chars.c    $(HEADERS) $(OBJECTS)
 	$(CC) $(CFLAGS) -o unit_chars ./tests/unit_chars.c -Iinclude  $(OBJECTS)
 clean:
-	rm -f unit *.o $(LIBNAME) example benchmark dynunit unit_chars
+	rm -f unit *.o $(LIBNAME) example benchmark bitpackingbenchmark dynunit unit_chars
