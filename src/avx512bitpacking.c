@@ -7,7 +7,7 @@ static uint32_t maxbitas32int(const __m256i accumulator) {
         uint32_t ans1 = _mm256_extract_epi32(_tmp2,0);
         uint32_t ans2 = _mm256_extract_epi32(_tmp2,4);
         uint32_t ans = ans1 > ans2 ? ans1 : ans2;
-        return bits(ans);
+        return ans;
 }
 
 static uint32_t avx512maxbitas32int(const __m512i accumulator) {
@@ -21,7 +21,7 @@ uint32_t avx512maxbits(const uint32_t * begin) {
 	    const __m512i* pin = (const __m512i*)(begin);
 	    __m512i accumulator = _mm512_loadu_si512(pin);
 	    uint32_t k = 1;
-	    for(; 8*k < AVX512BlockSize; ++k) {
+	    for(; 16*k < AVX512BlockSize; ++k) {
 	    	__m512i newvec = _mm512_loadu_si512(pin+k);
 	        accumulator = _mm512_or_si512(accumulator,newvec);
 	    }
