@@ -411,7 +411,7 @@ int testbabyavx512() {
 		for(trial = 0; trial < 100; ++trial) {
 			uint32_t * data = malloc(N * sizeof(uint32_t)+ 64 * sizeof(uint32_t));
 			uint32_t * backdata = malloc(N * sizeof(uint32_t) + 64 * sizeof(uint32_t) );
-			__m256i * buffer = malloc((2 * N + 1024) * sizeof(uint32_t) + 32);
+			__m512i * buffer = malloc((2 * N + 1024) * sizeof(uint32_t) + 32);
 
 			for (i = 0; i < N; ++i) {
 				data[i] = rand() & ((uint32_t)(1 << bit) - 1);
@@ -450,7 +450,7 @@ int testbabyavx512() {
 
 int testavx512_2() {
     int N = 5000 * AVX512BlockSize, gap;
-    __m256i * buffer = malloc(AVX512BlockSize * sizeof(uint32_t));
+    __m512i * buffer = malloc(AVX512BlockSize * sizeof(uint32_t));
     uint32_t * datain = malloc(N * sizeof(uint32_t));
     uint32_t * backbuffer = malloc(AVX512BlockSize * sizeof(uint32_t));
     for (gap = 1; gap <= 387420489; gap *= 3) {
@@ -474,8 +474,8 @@ int testavx512_2() {
             printf("bit width = %d\n",b);
 
 
-            /* we read 256 integers at "datain + k * AVXBlockSize" and
-               write b 256-bit vectors at "buffer" */
+            /* we read 512 integers at "datain + k * AVXBlockSize" and
+               write b 512-bit vectors at "buffer" */
             avx512packwithoutmask(datain + k * AVX512BlockSize, buffer, b);
             /* we read back b1 128-bit vectors at "buffer" and write 128 integers at backbuffer */
 			avx512unpack(buffer, backbuffer, b);/* uncompressed */
