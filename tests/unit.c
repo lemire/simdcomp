@@ -393,6 +393,116 @@ int testavx2() {
 }
 #endif /* avx2 */
 
+
+
+#ifdef __AVX512F__
+
+int testbabyavx512() {
+	int bit;
+	int trial;
+	unsigned int i,j;
+	const size_t N = AVX512BlockSize;
+	srand(0);
+	printf("testbabyavx512\n");
+	printf("bit = ");
+	for (bit = 0; bit < 32; ++bit) {
+		printf(" %d ",bit);
+		fflush(stdout);
+		for(trial = 0; trial < 100; ++trial) {
+			uint32_t * data = malloc(N * sizeof(uint32_t)+ 64 * sizeof(uint32_t));
+			uint32_t * backdata = malloc(N * sizeof(uint32_t) + 64 * sizeof(uint32_t) );
+			__m256i * buffer = malloc((2 * N + 1024) * sizeof(uint32_t) + 32);
+
+			for (i = 0; i < N; ++i) {
+				data[i] = rand() & ((uint32_t)(1 << bit) - 1);
+			}
+			for (i = 0; i < N; ++i) {
+				backdata[i] = 0;
+			}
+            if(avx512maxbits(data) != maxbits_length(data,N)) {
+            	printf("avx512maxbits is buggy\n");
+				return -1;
+            }
+
+			avx512packwithoutmask(data, buffer, bit);
+			avx512unpack(buffer, backdata, bit);
+			for (i = 0; i < AVX512BlockSize; ++i) {
+				if (data[i] != backdata[i]) {
+					printf("bug\n");
+					for (j = 0; j < N; ++j) {
+						if (data[j] != backdata[j]) {
+							printf("data[%d]=%d v.s. backdata[%d]=%d\n",j,data[j],j,backdata[j]);
+						} else {
+							printf("data[%d]=%d\n",j,data[j]);
+						}
+					}
+					return -1;
+				}
+			}
+			free(data);
+			free(backdata);
+			free(buffer);
+		}
+	}
+	printf("\n");
+	return 0;
+}
+
+int testavx512_2() {
+    int N = 5000 * AVX512BlockSize, gap;
+    __m256i * buffer = malloc(AVX512BlockSize * sizeof(uint32_t));
+    uint32_t * datain = malloc(N * sizeof(uint32_t));
+    uint32_t * backbuffer = malloc(AVX512BlockSize * sizeof(uint32_t));
+    for (gap = 1; gap <= 387420489; gap *= 3) {
+        int k;
+        printf(" gap = %u \n", gap);
+        for (k = 0; k < N; ++k)
+            datain[k] = k * gap;
+        for (k = 0; k * AVX512BlockSize < N; ++k) {
+            /*
+               First part works for general arrays (sorted or unsorted)
+            */
+            int j;
+       	    /* we compute the bit width */
+            const uint32_t b = avxmaxbits(datain + k * AVXBlockSize);
+            if(avx512maxbits(datain + k * AVXBlockSize) != maxbits_length(datain + k * AVX512BlockSize,AVX512BlockSize)) {
+            	printf("avx512maxbits is buggy %d %d \n",
+            			avx512maxbits(datain + k * AVX512BlockSize),
+						maxbits_length(datain + k * AVX512BlockSize,AVX512BlockSize));
+				return -1;
+            }
+            printf("bit width = %d\n",b);
+
+
+            /* we read 256 integers at "datain + k * AVXBlockSize" and
+               write b 256-bit vectors at "buffer" */
+            avx512packwithoutmask(datain + k * AVX512BlockSize, buffer, b);
+            /* we read back b1 128-bit vectors at "buffer" and write 128 integers at backbuffer */
+			avx512unpack(buffer, backbuffer, b);/* uncompressed */
+			for (j = 0; j < AVX512BlockSize; ++j) {
+				if (backbuffer[j] != datain[k * AVX512BlockSize + j]) {
+					int i;
+					printf("bug in avx512pack\n");
+					for(i = 0; i < AVX512BlockSize; ++i) {
+						printf("data[%d]=%d got back %d %s\n",i,
+								datain[k * AVX512BlockSize + i],backbuffer[i],
+								datain[k * AVX512BlockSize + i]!=backbuffer[i]?"bug":"");
+					}
+					return -2;
+				}
+			}
+        }
+    }
+    free(buffer);
+    free(datain);
+    free(backbuffer);
+    printf("Code looks good.\n");
+    return 0;
+}
+#endif /* avx512 */
+
+
+
 int test() {
     int N = 5000 * SIMDBlockSize, gap;
     __m128i * buffer = malloc(SIMDBlockSize * sizeof(uint32_t));
@@ -857,6 +967,20 @@ int main() {
          return r;
     }
 #endif
+#ifdef __AVX512F__
+    r= testbabyavx512();
+    if (r) {
+         printf("test failure baby avx512\n");
+         return r;
+    }
+
+    r = testavx512_2();
+    if (r) {
+         printf("test failure 9 avx512\n");
+         return r;
+    }
+#endif
+
     r = test();
     if (r) {
          printf("test failure 9\n");

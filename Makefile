@@ -5,7 +5,7 @@
 ifeq ($(DEBUG),1)
 CFLAGS = -fPIC  -std=c89 -ggdb -msse4.1 -march=native -Wall -Wextra -Wshadow -fsanitize=undefined  -fno-omit-frame-pointer -fsanitize=address
 else
-CFLAGS = -fPIC -std=c89 -O3 -msse4.1  -march=native -Wall -Wextra -Wshadow
+CFLAGS = -fPIC -std=c89 -O3  -msse4.1  -march=native -Wall -Wextra -Wshadow
 endif # debug
 LDFLAGS = -shared
 LIBNAME=libsimdcomp.so.0.0.3
@@ -21,7 +21,7 @@ install: $(OBJECTS)
 
 
 
-HEADERS=./include/simdbitpacking.h ./include/simdcomputil.h ./include/simdintegratedbitpacking.h ./include/simdcomp.h ./include/simdfor.h ./include/avxbitpacking.h
+HEADERS=./include/simdbitpacking.h ./include/simdcomputil.h ./include/simdintegratedbitpacking.h ./include/simdcomp.h ./include/simdfor.h ./include/avxbitpacking.h ./include/avx512bitpacking.h
 
 uninstall:
 	for h in $(HEADERS) ; do rm  /usr/local/$$h; done
@@ -31,10 +31,15 @@ uninstall:
 
 
 OBJECTS= simdbitpacking.o simdintegratedbitpacking.o simdcomputil.o \
-		 simdpackedsearch.o simdpackedselect.o simdfor.o avxbitpacking.o
+		 simdpackedsearch.o simdpackedselect.o simdfor.o avxbitpacking.o avx512bitpacking.o
 
 $(LIBNAME): $(OBJECTS)
 	$(CC) $(CFLAGS) -o $(LIBNAME) $(OBJECTS)  $(LDFLAGS)
+
+
+avx512bitpacking.o: ./src/avx512bitpacking.c $(HEADERS)
+	$(CC) $(CFLAGS) -c ./src/avx512bitpacking.c -Iinclude
+
 
 
 avxbitpacking.o: ./src/avxbitpacking.c $(HEADERS)
