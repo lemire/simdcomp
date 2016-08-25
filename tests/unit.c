@@ -14,8 +14,10 @@ int testshortpack() {
 	size_t length;
 	__m128i * bb;
 	srand(0);
-	printf("testshortpack\n");
+        printf("[%s]\n", __func__);
 	for (bit = 0; bit < 32; ++bit) {
+                printf(" %d ",bit);
+                fflush(stdout);
 		const size_t N = 128;
 		uint32_t * data = malloc(N * sizeof(uint32_t));
 		uint32_t * backdata = malloc(N * sizeof(uint32_t));
@@ -57,7 +59,7 @@ int testlongpack() {
 	size_t length;
 	__m128i * bb;
 	srand(0);
-	printf("testlongpack\n");
+        printf("[%s]\n", __func__);
 	for (bit = 0; bit < 32; ++bit) {
 		const size_t N = 2048;
 		uint32_t * data = malloc(N * sizeof(uint32_t));
@@ -105,7 +107,7 @@ int testset() {
 	uint32_t * buffer = malloc((2 * N + 1024) * sizeof(uint32_t));
 
 	srand(0);
-
+        printf("[%s]\n", __func__);
 	for (bit = 0; bit < 32; ++bit) {
 		printf("simple set %d \n",bit);
 
@@ -168,6 +170,7 @@ int testsetd1() {
 	uint32_t * buffer = malloc((2 * N + 1024) * sizeof(uint32_t));
 
 	srand(0);
+        printf("[%s]\n", __func__);
 	for (bit = 0; bit < 32; ++bit) {
 		printf("simple set d1 %d \n",bit);
 		data[0] = rand() & ((1 << bit) - 1);
@@ -215,6 +218,7 @@ int testsetFOR() {
 	uint32_t * buffer = malloc((2 * N + 1024) * sizeof(uint32_t));
 
 	srand(0);
+        printf("[%s]\n", __func__);
 	for (bit = 0; bit < 32; ++bit) {
 		printf("simple set FOR %d \n",bit);
 		for (i = 0; i < N; ++i) {
@@ -253,7 +257,10 @@ int testshortFORpack() {
 	size_t length;
 	uint32_t offset = 7;
 	srand(0);
+        printf("[%s]\n", __func__);
 	for (bit = 0; bit < 32; ++bit) {
+                printf(" %d ",bit);
+                fflush(stdout);
 		const size_t N = 128;
 		uint32_t * data = malloc(N * sizeof(uint32_t));
 		uint32_t * backdata = malloc(N * sizeof(uint32_t));
@@ -295,7 +302,7 @@ int testbabyavx() {
 	unsigned int i,j;
 	const size_t N = AVXBlockSize;
 	srand(0);
-	printf("testbabyavx\n");
+        printf("[%s]\n", __func__);
 	printf("bit = ");
 	for (bit = 0; bit < 32; ++bit) {
 		printf(" %d ",bit);
@@ -345,6 +352,7 @@ int testavx2() {
     __m256i * buffer = malloc(AVXBlockSize * sizeof(uint32_t));
     uint32_t * datain = malloc(N * sizeof(uint32_t));
     uint32_t * backbuffer = malloc(AVXBlockSize * sizeof(uint32_t));
+    printf("[%s]\n", __func__);
     for (gap = 1; gap <= 387420489; gap *= 3) {
         int k;
         printf(" gap = %u \n", gap);
@@ -403,7 +411,7 @@ int testbabyavx512() {
 	unsigned int i,j;
 	const size_t N = AVX512BlockSize;
 	srand(0);
-	printf("testbabyavx512\n");
+        printf("[%s]\n", __func__);
 	printf("bit = ");
 	for (bit = 0; bit < 32; ++bit) {
 		printf(" %d ",bit);
@@ -453,44 +461,45 @@ int testavx512_2() {
     __m512i * buffer = malloc(AVX512BlockSize * sizeof(uint32_t));
     uint32_t * datain = malloc(N * sizeof(uint32_t));
     uint32_t * backbuffer = malloc(AVX512BlockSize * sizeof(uint32_t));
+    printf("[%s]\n", __func__);
     for (gap = 1; gap <= 387420489; gap *= 3) {
         int k;
         printf(" gap = %u \n", gap);
-        for (k = 0; k < N; ++k)
+        for (k = 0; k < N; ++k) {
             datain[k] = k * gap;
+        }
         for (k = 0; k * AVX512BlockSize < N; ++k) {
             /*
-               First part works for general arrays (sorted or unsorted)
-            */
+ *                First part works for general arrays (sorted or unsorted)
+ *                            */
             int j;
-       	    /* we compute the bit width */
-            const uint32_t b = avxmaxbits(datain + k * AVXBlockSize);
-            if(avx512maxbits(datain + k * AVXBlockSize) != maxbits_length(datain + k * AVX512BlockSize,AVX512BlockSize)) {
-            	printf("avx512maxbits is buggy %d %d \n",
-            			avx512maxbits(datain + k * AVX512BlockSize),
-						maxbits_length(datain + k * AVX512BlockSize,AVX512BlockSize));
-				return -1;
+            /* we compute the bit width */
+            const uint32_t b = avx512maxbits(datain + k * AVX512BlockSize);
+            if(b != maxbits_length(datain + k * AVX512BlockSize,AVX512BlockSize)) {
+                printf("avx512maxbits is buggy %d %d \n",
+                                avx512maxbits(datain + k * AVX512BlockSize),
+                                                maxbits_length(datain + k * AVX512BlockSize,AVX512BlockSize));
+                                return -1;
             }
-            printf("bit width = %d\n",b);
 
 
-            /* we read 512 integers at "datain + k * AVXBlockSize" and
-               write b 512-bit vectors at "buffer" */
+            /* we read 512 integers at "datain + k * AVX512BlockSize" and
+ *                write b 512-bit vectors at "buffer" */
             avx512packwithoutmask(datain + k * AVX512BlockSize, buffer, b);
-            /* we read back b1 128-bit vectors at "buffer" and write 128 integers at backbuffer */
-			avx512unpack(buffer, backbuffer, b);/* uncompressed */
-			for (j = 0; j < AVX512BlockSize; ++j) {
-				if (backbuffer[j] != datain[k * AVX512BlockSize + j]) {
-					int i;
-					printf("bug in avx512pack\n");
-					for(i = 0; i < AVX512BlockSize; ++i) {
-						printf("data[%d]=%d got back %d %s\n",i,
-								datain[k * AVX512BlockSize + i],backbuffer[i],
-								datain[k * AVX512BlockSize + i]!=backbuffer[i]?"bug":"");
-					}
-					return -2;
-				}
-			}
+            /* we read back b1 512-bit vectors at "buffer" and write 512 integers at backbuffer */
+                        avx512unpack(buffer, backbuffer, b);/* uncompressed */
+                        for (j = 0; j < AVX512BlockSize; ++j) {
+                                if (backbuffer[j] != datain[k * AVX512BlockSize + j]) {
+                                        int i;
+                                        printf("bug in avx512pack\n");
+                                        for(i = 0; i < AVX512BlockSize; ++i) {
+                                                printf("data[%d]=%d got back %d %s\n",i,
+                                                                datain[k * AVX512BlockSize + i],backbuffer[i],
+                                                                datain[k * AVX512BlockSize + i]!=backbuffer[i]?"bug":"");
+                                        }
+                                        return -2;
+                                }
+                        }
         }
     }
     free(buffer);
@@ -508,6 +517,7 @@ int test() {
     __m128i * buffer = malloc(SIMDBlockSize * sizeof(uint32_t));
     uint32_t * datain = malloc(N * sizeof(uint32_t));
     uint32_t * backbuffer = malloc(SIMDBlockSize * sizeof(uint32_t));
+    printf("[%s]\n", __func__);
     for (gap = 1; gap <= 387420489; gap *= 3) {
         int k;
         printf(" gap = %u \n", gap);
@@ -570,6 +580,7 @@ int testFOR() {
     uint32_t * datain = malloc(N * sizeof(uint32_t));
     uint32_t * backbuffer = malloc(SIMDBlockSize * sizeof(uint32_t));
     uint32_t tmax, tmin, tb;
+    printf("[%s]\n", __func__);
     for (gap = 1; gap <= 387420489; gap *= 2) {
         int k;
         printf(" gap = %u \n", gap);
@@ -617,7 +628,7 @@ int test_simdmaxbitsd1_length() {
     int i, j;
 
     memset(&buffer[0], 0xff, sizeof(buffer));
-
+    printf("[%s]\n", __func__);
     /* this test creates buffers of different length; each buffer is
      * initialized to result in the following deltas:
      * length 1: 2
@@ -660,7 +671,7 @@ int test_simdpackedsearch() {
     int b, i;
     uint32_t init = 0;
     __m128i initial = _mm_set1_epi32(init);
-
+    printf("[%s]\n", __func__);
     /* initialize the buffer */
     for (i = 0; i < 128; i++)
         buffer[i] = (uint32_t)(i + 1);
@@ -701,7 +712,7 @@ int test_simdpackedsearchFOR() {
     uint32_t i;
     uint32_t maxv, tmin, tmax, tb;
     uint32_t out[128];
-
+    printf("[%s]\n", __func__);
     /* this test creates delta encoded buffers with different bits, then
      * performs lower bound searches for each key */
     for (b = 1; b <= 32; b++) {
@@ -745,7 +756,7 @@ int test_simdpackedsearch_advanced() {
     uint32_t init = 0;
     __m128i initial = _mm_set1_epi32(init);
 
-
+    printf("[%s]\n", __func__);
     /* this test creates delta encoded buffers with different bits, then
      * performs lower bound searches for each key */
     for (b = 0; b <= 32; b++) {
@@ -833,7 +844,7 @@ int test_simdpackedselect() {
     uint32_t buffer[128];
     uint32_t initial = 33;
     int b, i;
-
+    printf("[%s]\n", __func__);
     /* initialize the buffer */
     for (i = 0; i < 128; i++)
         buffer[i] = (uint32_t)(initial + i);
@@ -862,7 +873,7 @@ int test_simdpackedselect_advanced() {
     uint32_t initial = 33;
     uint32_t b;
     int i;
-
+    printf("[%s]\n", __func__);
     /* this test creates delta encoded buffers with different bits, then
      * performs lower bound searches for each key */
     for (b = 0; b <= 32; b++) {
@@ -907,6 +918,20 @@ int test_simdpackedselect_advanced() {
 
 int main() {
     int r;
+#ifdef __AVX512F__
+    r= testbabyavx512();
+    if (r) {
+         printf("test failure baby avx512\n");
+         return r;
+    }
+
+    r = testavx512_2();
+    if (r) {
+         printf("test failure 9 avx512\n");
+         return r;
+    }
+#endif
+
     r =  testsetFOR();
     if (r) {
          printf("test failure 1\n");
@@ -967,20 +992,6 @@ int main() {
          return r;
     }
 #endif
-#ifdef __AVX512F__
-    r= testbabyavx512();
-    if (r) {
-         printf("test failure baby avx512\n");
-         return r;
-    }
-
-    r = testavx512_2();
-    if (r) {
-         printf("test failure 9 avx512\n");
-         return r;
-    }
-#endif
-
     r = test();
     if (r) {
          printf("test failure 9\n");
