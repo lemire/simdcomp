@@ -121,6 +121,7 @@ Other libraries
 * Fast decoder for VByte-compressed integers https://github.com/lemire/MaskedVByte
 * Fast integer compression in C using StreamVByte https://github.com/lemire/streamvbyte
 * FastPFOR is a C++ research library well suited to compress unsorted arrays: https://github.com/lemire/FastPFor
+* FrameOfReference is a C++ library dedicated to frame-of-reference (FOR) compression: https://github.com/lemire/FrameOfReference
 * SIMDCompressionAndIntersection is a C++ research library well suited for sorted arrays (differential coding)
 and computing intersections: https://github.com/lemire/SIMDCompressionAndIntersection
 * TurboPFor is a C library that offers lots of interesting optimizations. Well worth checking! (GPL license) https://github.com/powturbo/TurboPFor
