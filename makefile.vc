@@ -38,7 +38,7 @@ CFLAGS = /nologo /MDd /LDd /Od /Zi /D_DEBUG /RTC1 /W3 /GS /Gm
 ARFLAGS = /nologo
 LDFLAGS = /nologo /debug /nodefaultlib:msvcrt
 !ELSE
-CFLAGS = /nologo /MD /O2 /Zi /DNDEBUG /W3 /Gm- /GS /Gy /Oi /GL /MP
+CFLAGS = /nologo /MD /O2 /Zi /DNDEBUG /W3 /Gm- /GS- /Gy /Oi /GL /MP
 ARFLAGS = /nologo /LTCG
 LDFLAGS = /nologo /LTCG /DYNAMICBASE /incremental:no /debug /opt:ref,icf
 !ENDIF
