@@ -118,6 +118,7 @@ If you are a go user, there is a "go" folder where you will find a simple demo.
 Other libraries
 ----------------
 
+* SIMDCompressionAndIntersection: A C++ library to compress and intersect sorted lists of integers using SIMD instructions https://github.com/lemire/SIMDCompressionAndIntersect
 * The FastPFOR C++ library : Fast integer compression https://github.com/lemire/FastPFor
 * High-performance dictionary coding https://github.com/lemire/dictionary
 * LittleIntPacker: C library to pack and unpack short arrays of integers as fast as possible https://github.com/lemire/LittleIntPacker
