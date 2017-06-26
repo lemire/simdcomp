@@ -27,7 +27,9 @@ EXPORTS
 	simdpack_length
 	simdpackFOR_length
 	simdunpackFOR_length
+	simdpackFOR_compressedbytes
 	simdpack_shortlength
+	simdpack_compressedbytes
 	simdfastsetFOR
 	simdfastset
 	simdfastsetd1
@@ -36,5 +38,4 @@ EXPORTS
 	simdsearchwithlengthFOR
 	simdscand1
 	simdfastsetd1fromprevious
-	simdfastsetd1
 

@@ -34,11 +34,11 @@ PGI=no
 INC = /Iinclude
 
 !IF "$(DEBUG)"=="yes"
-CFLAGS = /nologo /MDd /LDd /Od /Zi /D_DEBUG /RTC1 /W3 /GS /Gm
+CFLAGS = /nologo /MDd /LDd /Od /Zi /D_DEBUG /RTC1 /W3 /GS /Gm /D __SSE4_1__=1
 ARFLAGS = /nologo
 LDFLAGS = /nologo /debug /nodefaultlib:msvcrt
 !ELSE
-CFLAGS = /nologo /MD /O2 /Zi /DNDEBUG /W3 /Gm- /GS /Gy /Oi /GL /MP
+CFLAGS = /nologo /MD /O2 /Zi /DNDEBUG /W3 /Gm- /GS /Gy /Oi /GL /MP /D __SSE4_1__=1
 ARFLAGS = /nologo /LTCG
 LDFLAGS = /nologo /LTCG /DYNAMICBASE /incremental:no /debug /opt:ref,icf
 !ENDIF
@@ -51,37 +51,68 @@ LDFLAGS = $(LDFLAGS) /ltcg:pgi
 LDFLAGS = $(LDFLAGS) /ltcg:pgo
 !ENDIF
 
+# SSE4.1 is required
+# VC++15.3 supports AVX512
+!IF "$(AVX512)"=="yes"
+CFLAGS = $(CFLAGS) /arch:AVX2 /D __SSE4_1__=1 /D __AVX2__=1 /D __AVX512F__=1
+AVX2=yes
+!ELSEIF "$(AVX2)"=="yes"
+CFLAGS = $(CFLAGS) /arch:AVX2 /D __SSE4_1__=1 /D __AVX2__=1
+!ENDIF
+
 LIB_OBJS = simdbitpacking.obj simdintegratedbitpacking.obj simdcomputil.obj \
 	simdpackedsearch.obj simdpackedselect.obj simdfor.obj
 
+LIB_SRCS = src/simdbitpacking.c src/simdintegratedbitpacking.c src/simdcomputil.c \
+	src/simdpackedsearch.c src/simdpackedselect.c src/simdfor.c
 
-all: lib dll dynunit unit_chars example benchmark
+!IF "$(AVX2)"=="yes"
+LIB_OBJS = $(LIB_OBJS) avx512bitpacking.obj
+LIB_SRCS = $(LIB_SRCS) src/avx512bitpacking.c
+!ENDIF
+
+!IF "$(AVX2)"=="yes"
+LIB_OBJS = $(LIB_OBJS) avxbitpacking.obj
+LIB_SRCS = $(LIB_SRCS) src/avxbitpacking.c
+!ENDIF
+
+
+all: lib dll dynunit unit_chars example benchmarks
 # need some good use case scenario to train the instrumented build
 	@if "$(PGI)"=="yes" echo Running PGO training
 	@if "$(PGI)"=="yes" benchmark.exe >nul 2>&1
+#	@if "$(PGI)"=="yes" bitpackingbenchmark.exe >nul 2>&1
 	@if "$(PGI)"=="yes" example.exe >nul 2>&1
 
 
 $(LIB_OBJS):
-	$(CC) $(INC) $(CFLAGS) /c src/simdbitpacking.c src/simdintegratedbitpacking.c src/simdcomputil.c \
-		src/simdpackedsearch.c src/simdpackedselect.c src/simdfor.c
+	$(CC) $(INC) $(CFLAGS) /c $(LIB_SRCS) 
 
 lib: $(LIB_OBJS)
+	@copy simdcomp.def.tpl simdcomp.def
+	@if "$(AVX2)"=="yes" echo avxunpack >> simdcomp.def
+	@if "$(AVX2)"=="yes" echo avxpackwithoutmask >> simdcomp.def
+	@if "$(AVX2)"=="yes" echo avxpack >> simdcomp.def
+	@if "$(AVX2)"=="yes" echo avxmaxbits >> simdcomp.def
+	@if "$(AVX512)"=="yes" echo avx512unpack >> simdcomp.def
+	@if "$(AVX512)"=="yes" echo avx512packwithoutmask >> simdcomp.def
+	@if "$(AVX512)"=="yes" echo avx512pack >> simdcomp.def
+	@if "$(AVX512)"=="yes" echo avx512maxbits >> simdcomp.def
 	$(AR) $(ARFLAGS) /OUT:simdcomp_a.lib $(LIB_OBJS)
 
 dll: $(LIB_OBJS)
 	$(LINK) /DLL $(LDFLAGS) /OUT:simdcomp.dll /IMPLIB:simdcomp.lib /DEF:simdcomp.def $(LIB_OBJS)
 
 unit: lib
-	$(CC) $(INC) $(CFLAGS) /c src/unit.c 
+	$(CC) $(INC) $(CFLAGS) /c tests/unit.c 
 	$(LINK) $(LDFLAGS) /OUT:unit.exe unit.obj simdcomp_a.lib
 
 dynunit: dll
-	$(CC) $(INC) $(CFLAGS) /c src/unit.c 
+	$(CC) $(INC) $(CFLAGS) /c tests/unit.c 
 	$(LINK) $(LDFLAGS) /OUT:unit.exe unit.obj simdcomp.lib
 
 unit_chars: lib
-	$(CC) $(INC) $(CFLAGS) /c src/unit_chars.c
+	$(CC) $(INC) $(CFLAGS) /c tests/unit_chars.c
 	$(LINK) $(LDFLAGS) /OUT:unit_chars.exe unit_chars.obj simdcomp.lib
 
 
@@ -89,9 +120,11 @@ example: lib
 	$(CC) $(INC) $(CFLAGS) /c example.c
 	$(LINK) $(LDFLAGS) /OUT:example.exe example.obj simdcomp.lib
 
-benchmark: lib
-	$(CC) $(INC) $(CFLAGS) /c src/benchmark.c
+benchmarks: lib
+	$(CC) $(INC) $(CFLAGS) /c benchmarks/benchmark.c
 	$(LINK) $(LDFLAGS) /OUT:benchmark.exe benchmark.obj simdcomp.lib
+#	$(CC) $(INC) $(CFLAGS) /c benchmarks/bitpackingbenchmark.c
+#	$(LINK) $(LDFLAGS) /OUT:bitpackingbenchmark.exe bitpackingbenchmark.obj simdcomp.lib
 
 clean:
 	del /Q *.obj
@@ -101,4 +134,5 @@ clean:
 	del /Q *.pgc
 	del /Q *.pgd
 	del /Q *.pdb
+	del simdcomp.def
 
