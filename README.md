@@ -20,6 +20,8 @@ What is it for?
 This is a low-level library for fast integer compression. By design it does not define a compressed
 format. It is up to the (sophisticated) user to create a compressed format.
 
+For example, it is used by the  [Tantivy search engine](https://github.com/tantivy-search/tantivy).
+
 Requirements
 -------------
 
