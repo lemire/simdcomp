@@ -17,9 +17,9 @@ build_script:
         ps: |
                 cd c:\projects\simdcomp
                 echo "" | Out-File -Encoding "ASCII" task.bat
-                $vs_shell_cmd = 'call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" ' + $env:ARCH
+                $vs_shell_cmd = 'call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" ' + $env:ARCH + ' 2>&1'
                 echo $vs_shell_cmd | Out-File -Encoding "ASCII" -Append task.bat
-                echo 'nmake /f makefile.vc' | Out-File -Encoding "ASCII" -Append task.bat
+                echo 'nmake /nologo /f makefile.vc 2>&1' | Out-File -Encoding "ASCII" -Append task.bat
                 $here = (Get-Item -Path "." -Verbose).FullName
                 $task = $here + '\task.bat'
                 & $task
