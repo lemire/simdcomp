@@ -14,6 +14,7 @@ environment:
         matrix:
                 - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
                   ARCH: x64
+# looks like vc14 has trouble with code on x86, at least on the AppVeyor image
 #                - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
 #                  ARCH: x86
                 - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
