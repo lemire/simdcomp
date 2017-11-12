@@ -29,9 +29,9 @@ build_script:
                         $vs_shell_cmd = 'call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" ' + $env:ARCH + ' 2>&1'
                 } elseif ('Visual Studio 2017' -eq $env:APPVEYOR_BUILD_WORKER_IMAGE) {
                         if ('x64' -eq $env:ARCH) {
-                                $vs_shell_cmd = 'call call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat 2>&1'
+                                $vs_shell_cmd = 'call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat" 2>&1'
                         } else {
-                                $vs_shell_cmd = 'call call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars32.bat 2>&1'
+                                $vs_shell_cmd = 'call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars32.bat" 2>&1'
                         }
                 }
                 echo $vs_shell_cmd | Out-File -Encoding "ASCII" -Append task.bat
