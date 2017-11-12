@@ -15,8 +15,9 @@ environment:
         matrix:
                 - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
                   ARCH: x64
-                - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
-                  ARCH: x86
+#                - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+#                  ARCH: x86
+
 build_script:
         ps: |
                 cd c:\projects\simdcomp
