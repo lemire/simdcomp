@@ -20,5 +20,7 @@ build_script:
                 $vs_shell_cmd = 'call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" ' + $env:ARCH
                 echo $vs_shell_cmd | Out-File -Encoding "ASCII" -Append task.bat
                 echo 'nmake /f makefile.vc' | Out-File -Encoding "ASCII" -Append task.bat
-                & task.bat
+                $here = (Get-Item -Path "." -Verbose).FullName
+                $task = $here + '\task.bat'
+                & $task
 
