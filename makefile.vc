@@ -7,6 +7,10 @@ MACHINE=x86
 !ENDIF
 !ENDIF
 
+!IFNDEF VC
+VC=vc%VisualStudioVersion:~0,-2%
+!ENDIF
+
 !IFNDEF DEBUG
 DEBUG=no
 !ENDIF
@@ -143,7 +147,7 @@ pack:
 	copy ..\simdcomp_a.lib .\lib
 	copy ..\LICENSE .
 	copy ..\README.md .
-	7z a ..\simdcomp-$(PKG_FEATURES)-vc%VisualStudioVersion:~0,-2%-$(MACHINE).zip .
+	7z a ..\simdcomp-$(PKG_FEATURES)-$(VC)-$(MACHINE).zip .
 	cd ..
 	rmdir /s /q package
 
