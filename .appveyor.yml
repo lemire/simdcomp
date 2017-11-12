@@ -1,0 +1,24 @@
+
+version: "{branch}.build.{build}"
+
+
+clone_folder:  c:\projects\simdcomp
+
+#cache:
+#        c:\build-cache -> .appveyor.yml
+
+environment:
+        matrix:
+                - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+                  ARCH: x64
+                - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+                  ARCH: x86
+build_script:
+        ps: |
+                cd c:\projects\simdcomp
+                echo "" | Out-File -Encoding "ASCII" task.bat
+                $vs_shell_cmd = 'call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" ' + $env:ARCH
+                echo $vs_shell_cmd | Out-File -Encoding "ASCII" -Append task.bat
+                echo 'nmake /f makefile.vc' | Out-File -Encoding "ASCII" -Append task.bat
+                & task.bat
+
