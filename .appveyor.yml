@@ -1,6 +1,10 @@
 
 version: "{branch}.build.{build}"
 
+#TODO add VS2017 to the matrix
+#TODO add at least test for building AVX*
+#TODO rework nmake to produce a lib package, which can be then uploaded as artifact
+
 
 clone_folder:  c:\projects\simdcomp
 
