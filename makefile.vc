@@ -154,7 +154,7 @@ pack:
 	copy ..\README.md .
 	7z a ..\simdcomp-$(PKG_VERSION)-$(PKG_FEATURES)-$(VC)-$(MACHINE).zip .
 	cd ..
-	rmdir /s /q package
+	powershell -Command "Remove-Item -Recurse -Force .\package"
 
 clean:
 	del /Q *.obj
@@ -165,5 +165,4 @@ clean:
 	del /Q *.pgd
 	del /Q *.pdb
 	del simdcomp.def
-	rmdir /s /q package
 
