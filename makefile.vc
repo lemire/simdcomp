@@ -66,14 +66,18 @@ LIB_OBJS = simdbitpacking.obj simdintegratedbitpacking.obj simdcomputil.obj \
 LIB_SRCS = src/simdbitpacking.c src/simdintegratedbitpacking.c src/simdcomputil.c \
 	src/simdpackedsearch.c src/simdpackedselect.c src/simdfor.c
 
-!IF "$(AVX512)"=="yes"
-LIB_OBJS = $(LIB_OBJS) avx512bitpacking.obj
-LIB_SRCS = $(LIB_SRCS) src/avx512bitpacking.c
-!ENDIF
+PKG_FEATURES=sse4.1
 
 !IF "$(AVX2)"=="yes"
 LIB_OBJS = $(LIB_OBJS) avxbitpacking.obj
 LIB_SRCS = $(LIB_SRCS) src/avxbitpacking.c
+PKG_FEATURES=avx2
+!ENDIF
+
+!IF "$(AVX512)"=="yes"
+LIB_OBJS = $(LIB_OBJS) avx512bitpacking.obj
+LIB_SRCS = $(LIB_SRCS) src/avx512bitpacking.c
+PKG_FEATURES=avx512
 !ENDIF
 
 
@@ -126,6 +130,23 @@ benchmarks: lib
 #	$(CC) $(INC) $(CFLAGS) /c benchmarks/bitpackingbenchmark.c
 #	$(LINK) $(LDFLAGS) /OUT:bitpackingbenchmark.exe bitpackingbenchmark.obj simdcomp.lib
 
+pack:
+	mkdir .\package
+	cd .\package
+	mkdir .\include
+	mkdir .\bin
+	mkdir .\lib
+	copy ..\include\*.h .\include
+	copy ..\simdcomp.dll .\bin
+	copy ..\simdcomp.pdb .\bin
+	copy ..\simdcomp.lib .\lib
+	copy ..\simdcomp_a.lib .\lib
+	copy ..\LICENSE .
+	copy ..\README.md .
+	7z a ..\simdcomp-$(PKG_FEATURES)-vc%VisualStudioVersion:~0,-2%-$(MACHINE).zip .
+	cd ..
+	rmdir /s /q package
+
 clean:
 	del /Q *.obj
 	del /Q *.lib
@@ -135,4 +156,5 @@ clean:
 	del /Q *.pgd
 	del /Q *.pdb
 	del simdcomp.def
+	rmdir /s /q package
 
