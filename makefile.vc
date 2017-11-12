@@ -54,10 +54,10 @@ LDFLAGS = $(LDFLAGS) /ltcg:pgo
 # SSE4.1 is required
 # VC++15.3 supports AVX512
 !IF "$(AVX512)"=="yes"
-CFLAGS = $(CFLAGS) /arch:AVX2 /D __SSE4_1__=1 /D __AVX2__=1 /D __AVX512F__=1
+CFLAGS = $(CFLAGS) /arch:AVX2 /D __AVX2__=1 /D __AVX512F__=1
 AVX2=yes
 !ELSEIF "$(AVX2)"=="yes"
-CFLAGS = $(CFLAGS) /arch:AVX2 /D __SSE4_1__=1 /D __AVX2__=1
+CFLAGS = $(CFLAGS) /arch:AVX2 /D __AVX2__=1
 !ENDIF
 
 LIB_OBJS = simdbitpacking.obj simdintegratedbitpacking.obj simdcomputil.obj \
