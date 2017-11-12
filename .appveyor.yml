@@ -24,3 +24,11 @@ build_script:
                 $task = $here + '\task.bat'
                 & $task
 
+test_script:
+        ps: |
+                cd c:\projects\simdcomp
+                echo "" | Out-File -Encoding "ASCII" task.bat
+                $here = (Get-Item -Path "." -Verbose).FullName
+                echo '.\unit.exe' | Out-File -Encoding "ASCII" -Append task.bat
+                $task = $here + '\task.bat'
+                & $task
