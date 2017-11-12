@@ -157,12 +157,12 @@ pack:
 	powershell -Command "Remove-Item -Recurse -Force .\package"
 
 clean:
-	del /Q *.obj
-	del /Q *.lib
-	del /Q *.exe
-	del /Q *.dll
-	del /Q *.pgc
-	del /Q *.pgd
-	del /Q *.pdb
-	del simdcomp.def
+	powershell -Command "Remove-Item -Force *.obj"
+	powershell -Command "Remove-Item -Force *.lib"
+	powershell -Command "Remove-Item -Force *.exe"
+	powershell -Command "Remove-Item -Force *.dll"
+	powershell -Command "Remove-Item -Force *.pgc"
+	powershell -Command "Remove-Item -Force *.pgd"
+	powershell -Command "Remove-Item -Force *.pdb"
+	powershell -Command "Remove-Item -Force *.def"
 
