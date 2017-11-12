@@ -1,10 +1,6 @@
 
 version: "{branch}.build.{build}"
 
-#TODO add at least test for building AVX*
-#TODO rework nmake to produce a lib package, which can be then uploaded as artifact
-
-
 clone_folder:  c:\projects\simdcomp
 
 #cache:
@@ -27,19 +23,42 @@ build_script:
                 cd c:\projects\simdcomp
                 echo "" | Out-File -Encoding "ASCII" task.bat
                 if ('Visual Studio 2015' -eq $env:APPVEYOR_BUILD_WORKER_IMAGE) {
+                        $VC = 14;
                         $vs_shell_cmd = 'call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" ' + $env:ARCH + ' 2>&1'
                 } elseif ('Visual Studio 2017' -eq $env:APPVEYOR_BUILD_WORKER_IMAGE) {
+                        $VC = 15;
                         if ('x64' -eq $env:ARCH) {
                                 $vs_shell_cmd = 'call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat" 2>&1'
                         } else {
                                 $vs_shell_cmd = 'call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars32.bat" 2>&1'
                         }
                 }
-                echo $vs_shell_cmd | Out-File -Encoding "ASCII" -Append task.bat
-                echo 'nmake /nologo /f makefile.vc 2>&1' | Out-File -Encoding "ASCII" -Append task.bat
+                mkdir c:\tmp_pack
+                if ($VC -gt 14) {
+                        echo $vs_shell_cmd | Out-File -Encoding "ASCII" -Append task.bat
+                        $cmd = 'nmake /nologo /f makefile.vc AVX512=yes PKG_VERSION=' + $env:APPVEYOR_REPO_COMMIT.substring(0, 8) .  ' MACHINE=' + $env:ARCH + ' 2>&1'
+                        echo $cmd | Out-File -Encoding "ASCII" -Append task.bat
+                        echo "move *.zip c:\tmp_pack" | Out-File -Encoding "ASCII" -Append task.bat
+                        echo 'nmake clean' | Out-File -Encoding "ASCII" -Append task.bat
+                        $cmd = 'nmake /nologo /f makefile.vc AVX2=yes PKG_VERSION=' + $env:APPVEYOR_REPO_COMMIT.substring(0, 8) .  ' MACHINE=' + $env:ARCH + ' 2>&1'
+                        echo $cmd | Out-File -Encoding "ASCII" -Append task.bat
+                        echo "move *.zip c:\tmp_pack" | Out-File -Encoding "ASCII" -Append task.bat
+                        echo 'nmake clean' | Out-File -Encoding "ASCII" -Append task.bat
+                }
+                $cmd = 'nmake /nologo /f makefile.vc PKG_VERSION=' + $env:APPVEYOR_REPO_COMMIT.substring(0, 8) .  ' MACHINE=' + $env:ARCH + ' 2>&1'
+                echo $cmd | Out-File -Encoding "ASCII" -Append task.bat
+                echo "move *.zip c:\tmp_pack" | Out-File -Encoding "ASCII" -Append task.bat
+                echo 'nmake clean' | Out-File -Encoding "ASCII" -Append task.bat
                 $here = (Get-Item -Path "." -Verbose).FullName
                 $task = $here + '\task.bat'
                 & $task
+
+after_build:
+        ps: |
+                Get-ChildItem 'c:\tmp_pack' -Filter *.zip |
+                Foreach-Object {
+                        Push-AppveyorArtifact $_.FullName
+                }
 
 test_script:
         ps: |
@@ -49,3 +68,4 @@ test_script:
                 echo '.\unit.exe' | Out-File -Encoding "ASCII" -Append task.bat
                 $task = $here + '\task.bat'
                 & $task
+
