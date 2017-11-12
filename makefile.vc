@@ -66,7 +66,7 @@ LIB_OBJS = simdbitpacking.obj simdintegratedbitpacking.obj simdcomputil.obj \
 LIB_SRCS = src/simdbitpacking.c src/simdintegratedbitpacking.c src/simdcomputil.c \
 	src/simdpackedsearch.c src/simdpackedselect.c src/simdfor.c
 
-!IF "$(AVX2)"=="yes"
+!IF "$(AVX512)"=="yes"
 LIB_OBJS = $(LIB_OBJS) avx512bitpacking.obj
 LIB_SRCS = $(LIB_SRCS) src/avx512bitpacking.c
 !ENDIF
