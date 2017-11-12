@@ -1,7 +1,6 @@
 
 version: "{branch}.build.{build}"
 
-#TODO add VS2017 to the matrix
 #TODO add at least test for building AVX*
 #TODO rework nmake to produce a lib package, which can be then uploaded as artifact
 
@@ -17,12 +16,24 @@ environment:
                   ARCH: x64
 #                - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
 #                  ARCH: x86
+                - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+                  ARCH: x64
+                - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+                  ARCH: x86
 
 build_script:
         ps: |
                 cd c:\projects\simdcomp
                 echo "" | Out-File -Encoding "ASCII" task.bat
-                $vs_shell_cmd = 'call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" ' + $env:ARCH + ' 2>&1'
+                if ('Visual Studio 2015' -eq $env:APPVEYOR_BUILD_WORKER_IMAGE) {
+                        $vs_shell_cmd = 'call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" ' + $env:ARCH + ' 2>&1'
+                } elseif ('Visual Studio 2017' -eq $env:APPVEYOR_BUILD_WORKER_IMAGE) {
+                        if ('x64' -eq $env:ARCH) {
+                                $vs_shell_cmd = 'call call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat 2>&1'
+                        } else {
+                                $vs_shell_cmd = 'call call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars32.bat 2>&1'
+                        }
+                }
                 echo $vs_shell_cmd | Out-File -Encoding "ASCII" -Append task.bat
                 echo 'nmake /nologo /f makefile.vc 2>&1' | Out-File -Encoding "ASCII" -Append task.bat
                 $here = (Get-Item -Path "." -Verbose).FullName
