@@ -4,7 +4,6 @@
 #include "simdintegratedbitpacking.h"
 
 #if defined(__SSSE3__) || defined(__AVX__)
-#include <tmmintrin.h>
 #define Delta(curr, prev) _mm_sub_epi32(curr, \
             _mm_alignr_epi8(curr, prev, 12))
 #else
