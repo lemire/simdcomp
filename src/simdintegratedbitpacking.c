@@ -3,9 +3,14 @@
  */
 #include "simdintegratedbitpacking.h"
 
-
+#if defined(__SSSE3__) || defined(__AVX__)
+#include <tmmintrin.h>
+#define Delta(curr, prev) _mm_sub_epi32(curr, \
+            _mm_alignr_epi8(curr, prev, 12))
+#else
 #define Delta(curr, prev) _mm_sub_epi32(curr, \
             _mm_or_si128(_mm_slli_si128(curr, 4), _mm_srli_si128(prev, 12)))
+#endif
 
 #define PrefixSum(ret, curr, prev) do { \
 	const __m128i _tmp1 = _mm_add_epi32(_mm_slli_si128(curr, 8), curr); \
@@ -24879,4 +24884,3 @@ void simdfastsetd1(uint32_t initvalue, __m128i * in, uint32_t bit, uint32_t valu
 }
 
 #endif
-
