@@ -25,7 +25,7 @@ __m128i  iunpack0(__m128i initOffset, const __m128i * _in  , uint32_t *    _out)
 
     for (i = 0; i < 8; ++i) {
         _mm_storeu_si128(out++, constant);
-    	_mm_storeu_si128(out++, constant);
+        _mm_storeu_si128(out++, constant);
         _mm_storeu_si128(out++, constant);
         _mm_storeu_si128(out++, constant);
     }
