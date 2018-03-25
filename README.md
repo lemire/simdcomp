@@ -13,6 +13,8 @@ This is significantly faster than generic codecs like gzip, LZO, Snappy or LZ4.
 On a Skylake Intel processor, it can decode integers at a rate 0.3 cycles per integer,
 which can easily translate into more than 8 decoded billions integers per second.
 
+This library is part of the [Awesome C](https://github.com/kozross/awesome-c) list of C ressources.
+
 Contributors: Daniel Lemire, Nathan Kurz, Christoph Rupp, Anatol Belski, Nick White and others
 
 What is it for?
@@ -21,7 +23,11 @@ What is it for?
 This is a low-level library for fast integer compression. By design it does not define a compressed
 format. It is up to the (sophisticated) user to create a compressed format.
 
-For example, it is was used by the  [Tantivy search engine](https://github.com/tantivy-search/tantivy), they later [ported it to Rust](https://github.com/tantivy-search/bitpacking/).
+It is used by:
+- [upscaledb](https://github.com/cruppstahl/upscaledb)
+- [EventQL](https://github.com/eventql/eventql)
+
+
 
 Requirements
 -------------
@@ -136,6 +142,11 @@ Other libraries
 * Oroch is a C++ library that offers a usable API (MIT license) https://github.com/ademakov/Oroch
 
 
+Other programming languages
+-------------
+
+- [There is a wrapper for Julia](https://github.com/mcovalt/TinyInt.jl).
+- [There is a Rust port](https://github.com/tantivy-search/bitpacking/).
 
 References
 ------------
