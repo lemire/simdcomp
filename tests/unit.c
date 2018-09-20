@@ -8,9 +8,10 @@
 
 int issue21() {
   size_t sz = 110;
+  size_t i;
   uint32_t *in = malloc(sz * sizeof(uint32_t));
   uint32_t *out = malloc(sz * sizeof(uint32_t));
-  for (size_t i = 0; i < sz; ++i)
+  for (i = 0; i < sz; ++i)
     in[i] = 255;
   uint32_t b = maxbits_length(in, sz);
   uint8_t *buf = malloc(simdpack_compressedbytes(sz, b));
@@ -33,11 +34,12 @@ int issue21() {
 }
 
 int issue21FOR() {
+  size_t i;
   size_t sz = 110;
   uint32_t *in = malloc(sz * sizeof(uint32_t));
   uint32_t *out = malloc(sz * sizeof(uint32_t));
   in[0] = 0;
-  for (size_t i = 1; i < sz; ++i)
+  for (i = 1; i < sz; ++i)
     in[i] = 255;
   uint32_t b = maxbits_length(in, sz);
   uint8_t *buf = malloc(simdpackFOR_compressedbytes(sz, b));

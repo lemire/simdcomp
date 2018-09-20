@@ -8,4 +8,4 @@ branches:
   only:
     - master
 
-script: make && ./unit && ./unit_chars && make clean && make DEBUG=1 && ./unit && ./unit_chars 
+script: make && ./unit && ./unit_chars && make clean  
