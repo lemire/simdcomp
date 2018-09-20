@@ -9,16 +9,15 @@
 extern "C" {
 #endif
 
+#include "avx512bitpacking.h"
+#include "avxbitpacking.h"
 #include "simdbitpacking.h"
 #include "simdcomputil.h"
 #include "simdfor.h"
 #include "simdintegratedbitpacking.h"
-#include "avxbitpacking.h"
-#include "avx512bitpacking.h"
-
 
 #ifdef __cplusplus
 } // extern "C"
 #endif
 
-#endif 
+#endif
