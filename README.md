@@ -1,6 +1,7 @@
 The SIMDComp library
 ====================
 [![Build Status](https://travis-ci.org/lemire/simdcomp.png)](https://travis-ci.org/lemire/simdcomp)
+[![Build Status](https://img.shields.io/appveyor/ci/lemire/simdcomp.svg)](https://ci.appveyor.com/project/lemire/simdcomp)
 
 A simple C library for compressing lists of integers using binary packing and SIMD instructions.
 The assumption is either that you have a list of 32-bit integers where most of them are small, or a list of 32-bit integers where differences between successive integers are small. No software is able to reliably compress an array of 32-bit random numbers.
@@ -12,6 +13,8 @@ This is significantly faster than generic codecs like gzip, LZO, Snappy or LZ4.
 On a Skylake Intel processor, it can decode integers at a rate 0.3 cycles per integer,
 which can easily translate into more than 8 decoded billions integers per second.
 
+This library is part of the [Awesome C](https://github.com/kozross/awesome-c) list of C ressources.
+
 Contributors: Daniel Lemire, Nathan Kurz, Christoph Rupp, Anatol Belski, Nick White and others
 
 What is it for?
@@ -20,7 +23,11 @@ What is it for?
 This is a low-level library for fast integer compression. By design it does not define a compressed
 format. It is up to the (sophisticated) user to create a compressed format.
 
-For example, it is used by the  [Tantivy search engine](https://github.com/tantivy-search/tantivy).
+It is used by:
+- [upscaledb](https://github.com/cruppstahl/upscaledb)
+- [EventQL](https://github.com/eventql/eventql)
+
+
 
 Requirements
 -------------
@@ -120,7 +127,7 @@ If you are a go user, there is a "go" folder where you will find a simple demo.
 Other libraries
 ----------------
 
-* SIMDCompressionAndIntersection: A C++ library to compress and intersect sorted lists of integers using SIMD instructions https://github.com/lemire/SIMDCompressionAndIntersect
+* SIMDCompressionAndIntersection: A C++ library to compress and intersect sorted lists of integers using SIMD instructions https://github.com/lemire/SIMDCompressionAndIntersection
 * The FastPFOR C++ library : Fast integer compression https://github.com/lemire/FastPFor
 * High-performance dictionary coding https://github.com/lemire/dictionary
 * LittleIntPacker: C library to pack and unpack short arrays of integers as fast as possible https://github.com/lemire/LittleIntPacker
@@ -135,6 +142,11 @@ Other libraries
 * Oroch is a C++ library that offers a usable API (MIT license) https://github.com/ademakov/Oroch
 
 
+Other programming languages
+-------------
+
+- [There is a wrapper for Julia](https://github.com/mcovalt/TinyInt.jl).
+- [There is a Rust port](https://github.com/tantivy-search/bitpacking/).
 
 References
 ------------
