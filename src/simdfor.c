@@ -14999,7 +14999,7 @@ uint32_t simdselectFOR(uint32_t initvalue, const __m128i *in, uint32_t bit,
     const int secondwordinlane = (bitsinlane + bit - 1) / 32;
     const uint32_t firstpart =
         pin[4 * firstwordinlane + lane] >> (bitsinlane % 32);
-    const uint32_t mask = (1 << bit) - 1;
+    const uint32_t mask = (1U << bit) - 1;
     if (firstwordinlane == secondwordinlane) {
       /* easy common case*/
       return initvalue + (firstpart & mask);
@@ -15116,7 +15116,7 @@ const __m128i *simdunpackFOR_length(uint32_t initvalue, const __m128i *in,
     return (const __m128i *)((const uint32_t *)in + length);
   }
   offset = _mm_set1_epi32(initvalue);
-  maskbits = _mm_set1_epi32((1 << bit) - 1);
+  maskbits = _mm_set1_epi32((1U << bit) - 1);
   inwordpointer = 0;
   P = _mm_loadu_si128((__m128i *)in);
   ++in;

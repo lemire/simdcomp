@@ -14257,7 +14257,7 @@ const __m128i *simdunpack_shortlength(const __m128i *in, int length,
     memcpy(out, in, length * sizeof(uint32_t));
     return (const __m128i *)((uint32_t *)in + length);
   }
-  maskbits = _mm_set1_epi32((1 << bit) - 1);
+  maskbits = _mm_set1_epi32((1U << bit) - 1);
   inwordpointer = 0;
   P = _mm_loadu_si128((__m128i *)in);
   ++in;
@@ -14306,7 +14306,7 @@ void simdfastset(__m128i *in128, uint32_t b, uint32_t value, size_t index) {
   const int bitsinlane = (index / 4) * b; /* how many bits in lane */
   const int firstwordinlane = bitsinlane / 32;
   const int secondwordinlane = (bitsinlane + b - 1) / 32;
-  const uint32_t mask = (1 << b) - 1;
+  const uint32_t mask = (1U << b) - 1;
   if (b == 0)
     return;
   /* we zero */
@@ -14325,7 +14325,7 @@ void simdfastset(__m128i *in128, uint32_t b, uint32_t value, size_t index) {
     /* harder case where we need to combine two words */
     const int firstbits = 32 - (bitsinlane % 32);
     const int usablebits = b - firstbits;
-    const uint32_t mask2 = (1 << usablebits) - 1;
+    const uint32_t mask2 = (1U << usablebits) - 1;
     in[4 * firstwordinlane + 4 + lane] &= ~mask2;             /* we zero */
     in[4 * firstwordinlane + 4 + lane] |= value >> firstbits; /* we write */
     return;
