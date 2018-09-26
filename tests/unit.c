@@ -7,12 +7,13 @@
 #include <stdlib.h>
 
 int issue21() {
+  uint32_t bw, sz;
   printf("issue21");
   fflush(stdout);
-  for (uint32_t bw = 0; bw < 30; bw++) {
+  for (bw = 0; bw < 30; bw++) {
     printf(".");
     fflush(stdout);
-    for (size_t sz = 1; sz < 4096; sz++) {
+    for (sz = 1; sz < 4096; sz++) {
 
       size_t i;
       uint32_t *in = malloc(sz * sizeof(uint32_t));
@@ -43,13 +44,14 @@ int issue21() {
 }
 
 int issue21FOR() {
+  uint32_t bw, sz;
   size_t i, j;
   printf("issue21for");
   fflush(stdout);
-  for (uint32_t bw = 0; bw < 30; bw++) {
+  for (bw = 0; bw < 30; bw++) {
     printf(".");
     fflush(stdout);
-    for (size_t sz = 1; sz < 4096; sz++) {
+    for (sz = 1; sz < 4096; sz++) {
 
       uint32_t *in = malloc(sz * sizeof(uint32_t));
       uint32_t *out = malloc(sz * sizeof(uint32_t));
