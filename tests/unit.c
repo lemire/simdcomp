@@ -7,57 +7,78 @@
 #include <stdlib.h>
 
 int issue21() {
-  size_t sz = 110;
-  size_t i;
-  uint32_t *in = malloc(sz * sizeof(uint32_t));
-  uint32_t *out = malloc(sz * sizeof(uint32_t));
-  for (i = 0; i < sz; ++i)
-    in[i] = 255;
-  uint32_t b = maxbits_length(in, sz);
-  uint8_t *buf = malloc(simdpack_compressedbytes(sz, b));
-  __m128i *end = simdpack_length(in, sz, (__m128i *)buf, b);
-  if((uint8_t *)end - buf != simdpack_compressedbytes(sz, b)) {
-    printf("bad mem usage\n");
-    return -1;
-  }
-  simdunpack_length((const __m128i *)buf, sz, out, b);
-  for (i = 0; i < sz; ++i) {
-    if (in[i] != out[i]) {
-      printf("bug\n");
-      return -1;
+  printf("issue21");
+  fflush(stdout);
+  for (uint32_t bw = 0; bw < 30; bw++) {
+    printf(".");
+    fflush(stdout);
+    for (size_t sz = 1; sz < 4096; sz++) {
+
+      size_t i;
+      uint32_t *in = malloc(sz * sizeof(uint32_t));
+      uint32_t *out = malloc(sz * sizeof(uint32_t));
+      for (i = 0; i < sz; ++i)
+        in[i] = (1 << bw) - 1;
+      uint32_t b = maxbits_length(in, sz);
+      uint8_t *buf = malloc(simdpack_compressedbytes(sz, b));
+      __m128i *end = simdpack_length(in, sz, (__m128i *)buf, b);
+      if ((uint8_t *)end - buf != simdpack_compressedbytes(sz, b)) {
+        printf("bad mem usage\n");
+        return -1;
+      }
+      simdunpack_length((const __m128i *)buf, sz, out, b);
+      for (i = 0; i < sz; ++i) {
+        if (in[i] != out[i]) {
+          printf("bug\n");
+          return -1;
+        }
+      }
+      free(in);
+      free(out);
+      free(buf);
     }
   }
-  free(in);
-  free(out);
-  free(buf);
+  printf("\n");
   return 0;
 }
 
 int issue21FOR() {
-  size_t i;
-  size_t sz = 110;
-  uint32_t *in = malloc(sz * sizeof(uint32_t));
-  uint32_t *out = malloc(sz * sizeof(uint32_t));
-  in[0] = 0;
-  for (i = 1; i < sz; ++i)
-    in[i] = 255;
-  uint32_t b = maxbits_length(in, sz);
-  uint8_t *buf = malloc(simdpackFOR_compressedbytes(sz, b));
-  __m128i *end = simdpackFOR_length(0, in, sz, (__m128i *)buf, b);
-  if((uint8_t *)end - buf != simdpackFOR_compressedbytes(sz, b)) {
-    printf("bad mem usage\n");
-    return -1;
-  }
-  simdunpackFOR_length(0, (const __m128i *)buf, sz, out, b);
-  for (i = 0; i < sz; ++i) {
-    if (in[i] != out[i]) {
-      printf("bug\n");
-      return -1;
+  size_t i, j;
+  printf("issue21for");
+  fflush(stdout);
+  for (uint32_t bw = 0; bw < 30; bw++) {
+    printf(".");
+    fflush(stdout);
+    for (size_t sz = 1; sz < 4096; sz++) {
+
+      uint32_t *in = malloc(sz * sizeof(uint32_t));
+      uint32_t *out = malloc(sz * sizeof(uint32_t));
+      in[0] = 0;
+      for (i = 1; i < sz; ++i)
+        in[i] = (1 << bw) - 1;
+      uint32_t b = maxbits_length(in, sz);
+      uint8_t *buf = malloc(simdpackFOR_compressedbytes(sz, b));
+      __m128i *end = simdpackFOR_length(0, in, sz, (__m128i *)buf, b);
+      if ((uint8_t *)end - buf != simdpackFOR_compressedbytes(sz, b)) {
+        printf("bad mem usage\n");
+        return -1;
+      }
+      simdunpackFOR_length(0, (const __m128i *)buf, sz, out, b);
+      for (i = 0; i < sz; ++i) {
+        if (in[i] != out[i]) {
+          for (j = 0; j < sz; ++j) {
+            printf("%zu : %u %u \n", j, in[j], out[j]);
+          }
+          printf("bug\n");
+          return -1;
+        }
+      }
+      free(in);
+      free(out);
+      free(buf);
     }
   }
-  free(in);
-  free(out);
-  free(buf);
+  printf("\n");
   return 0;
 }
 
@@ -404,7 +425,7 @@ int testavx2() {
     int k;
     printf(" gap = %u \n", gap);
     for (k = 0; k < N; ++k)
-      datain[k] = (uint32_t)(((uint64_t)k * gap)&0xFFFFFFFF);
+      datain[k] = (uint32_t)(((uint64_t)k * gap) & 0xFFFFFFFF);
     for (k = 0; k * AVXBlockSize < N; ++k) {
       /*
          First part works for general arrays (sorted or unsorted)
@@ -567,7 +588,7 @@ int test() {
     int k;
     printf(" gap = %u \n", gap);
     for (k = 0; k < N; ++k)
-      datain[k] = (uint32_t)(((uint64_t)k * gap)&0xFFFFFFFF);
+      datain[k] = (uint32_t)(((uint64_t)k * gap) & 0xFFFFFFFF);
     for (k = 0; k * SIMDBlockSize < N; ++k) {
       /*
          First part works for general arrays (sorted or unsorted)
@@ -630,7 +651,7 @@ int testFOR() {
     int k;
     printf(" gap = %u \n", gap);
     for (k = 0; k < N; ++k)
-      datain[k] = (uint32_t)(((uint64_t)k * gap)&0xFFFFFFFF);
+      datain[k] = (uint32_t)(((uint64_t)k * gap) & 0xFFFFFFFF);
     for (k = 0; k * SIMDBlockSize < N; ++k) {
       int j;
       simdmaxmin_length(datain + k * SIMDBlockSize, SIMDBlockSize, &tmin,
