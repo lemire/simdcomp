@@ -28,6 +28,7 @@ format. It is up to the (sophisticated) user to create a compressed format.
 It is used by:
 - [upscaledb](https://github.com/cruppstahl/upscaledb)
 - [EventQL](https://github.com/eventql/eventql)
+- [ManticoreSearch](https://manticoresearch.com)
 
 
 
