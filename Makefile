@@ -9,7 +9,8 @@ CFLAGS = -fPIC -std=c89 -O3  -march=native -Wall -Wextra -Wshadow
 endif # debug
 LDFLAGS = -shared
 LIBNAME=libsimdcomp.so.0.0.3
-all:  unit unit_chars bitpackingbenchmark $(LIBNAME)
+STATICLIBNAME=libsimdcomp.a
+all:  unit unit_chars bitpackingbenchmark $(LIBNAME) $(STATICLIBNAME)
 test:
 	./unit
 	./unit_chars
@@ -36,6 +37,9 @@ OBJECTS= simdbitpacking.o simdintegratedbitpacking.o simdcomputil.o \
 $(LIBNAME): $(OBJECTS)
 	$(CC) $(CFLAGS) -o $(LIBNAME) $(OBJECTS)  $(LDFLAGS)
 
+$(STATICLIBNAME): $(OBJECTS)
+	ar -qcs $@ $(OBJECTS)
+	ranlib  $@
 
 avx512bitpacking.o: ./src/avx512bitpacking.c $(HEADERS)
 	$(CC) $(CFLAGS) -c ./src/avx512bitpacking.c -Iinclude
@@ -81,4 +85,4 @@ dynunit: ./tests/unit.c    $(HEADERS) $(LIBNAME)
 unit_chars: ./tests/unit_chars.c    $(HEADERS) $(OBJECTS)
 	$(CC) $(CFLAGS) -o unit_chars ./tests/unit_chars.c -Iinclude  $(OBJECTS)
 clean:
-	rm -f unit *.o $(LIBNAME) example benchmark bitpackingbenchmark dynunit unit_chars
+	rm -f unit *.o $(LIBNAME) $(STATICLIBNAME) example benchmark bitpackingbenchmark dynunit unit_chars
