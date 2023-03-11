@@ -129,6 +129,7 @@ If you are a go user, there is a "go" folder where you will find a simple demo.
 
 Other libraries
 ----------------
+* Fast integer compression in Go: https://github.com/ronanh/intcomp
 * Fast Bitpacking algorithms: Rust port of simdcomp https://github.com/quickwit-oss/bitpacking
 * SIMDCompressionAndIntersection: A C++ library to compress and intersect sorted lists of integers using SIMD instructions https://github.com/lemire/SIMDCompressionAndIntersection
 * The FastPFOR C++ library : Fast integer compression https://github.com/lemire/FastPFor
