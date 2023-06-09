@@ -15,7 +15,7 @@ This is significantly faster than generic codecs like gzip, LZO, Snappy or LZ4.
 On a Skylake Intel processor, it can decode integers at a rate 0.3 cycles per integer,
 which can easily translate into more than 8 decoded billions integers per second.
 
-This library is part of the [Awesome C](https://github.com/kozross/awesome-c) list of C ressources.
+This library is part of the [Awesome C](https://github.com/kozross/awesome-c) list of C resources.
 
 Contributors: Daniel Lemire, Nathan Kurz, Christoph Rupp, Anatol Belski, Nick White and others
 
