@@ -1,8 +1,6 @@
 The SIMDComp library
 ====================
-[![Build Status](https://travis-ci.org/lemire/simdcomp.png)](https://travis-ci.org/lemire/simdcomp)
 [![Build Status](https://img.shields.io/appveyor/ci/lemire/simdcomp.svg)](https://ci.appveyor.com/project/lemire/simdcomp)
-[![Code Quality: Cpp](https://img.shields.io/lgtm/grade/cpp/g/lemire/simdcomp.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/lemire/simdcomp/context:cpp)
 
 
 A simple C library for compressing lists of integers using binary packing and SIMD instructions.
