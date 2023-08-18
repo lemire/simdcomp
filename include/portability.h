@@ -7,7 +7,7 @@
 #include <iso646.h> /* mostly for Microsoft compilers */
 #include <string.h>
 
-#if SIMDCOMP_DEBUG
+#ifdef SIMDCOMP_DEBUG
 #define SIMDCOMP_ALWAYS_INLINE inline
 #define SIMDCOMP_NEVER_INLINE
 #define SIMDCOMP_PURE
